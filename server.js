@@ -2,13 +2,16 @@
 require('dotenv').config();
 
 // Web server config
-const PORT       = process.env.PORT || 8080;
-const ENV        = process.env.ENV || "development";
-const express    = require("express");
+const ENV = process.env.ENV || "development";
+const BIND_HOST = process.env.BIND_HOST || '0.0.0.0';
+const express = require("express");
 const bodyParser = require("body-parser");
-const sass       = require("node-sass-middleware");
-const app        = express();
-const morgan     = require('morgan');
+const sass = require("node-sass-middleware");
+const app = express();
+const morgan = require('morgan');
+const http = require('http');
+const https = require('https');
+const fs = require('fs');
 
 // PG database client/connection setup
 const { Pool } = require('pg');
@@ -38,8 +41,8 @@ const widgetsRoutes = require("./routes/widgets");
 
 // Mount all resource routes
 // Note: Feel free to replace the example routes below with your own
-app.use("/api/users", usersRoutes(db));
-app.use("/api/widgets", widgetsRoutes(db));
+// app.use("/api/users", usersRoutes(db));
+// app.use("/api/widgets", widgetsRoutes(db));
 // Note: mount other resources here, using the same pattern above
 
 
@@ -50,6 +53,29 @@ app.get("/", (req, res) => {
   res.render("index");
 });
 
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}`);
-});
+(async() => {
+  const getListenPromise = (server, ...p) => {
+    return new Promise((resolve, reject) => {
+      server.on('listening', resolve);
+      server.on('error', reject);
+      server.listen(...p);
+    });
+  };
+
+  const httpServer = http.createServer(app);
+  try {
+    await getListenPromise(httpServer, 80, BIND_HOST);
+    console.log("App listening on port 80");
+  } catch (err) {
+    await getListenPromise(httpServer, 8080, BIND_HOST);
+    console.log("App listening on port 8080");
+  }
+
+  if (process.env.SSL_CERT && process.env.SSL_CERT_KEY) {
+    const privateKey = fs.readFileSync(process.env.SSL_CERT, 'utf8');
+    const certificate = fs.readFileSync(process.env.SSL_CERT_KEY, 'utf8');
+    const httpsServer = https.createServer({ key: privateKey, cert: certificate }, app);
+    await getListenPromise(httpsServer, 443, BIND_HOST);
+    console.log("App listening on SSL port 443");
+  }
+})();
