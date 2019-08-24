@@ -28,6 +28,7 @@
     const greenMarker = 'https://maps.google.com/mapfiles/ms/icons/green-dot.png';
     const markers = [];
     const lines = [];
+    let popup;
     let map;
 
     const onMarkerClick = (evt, marker, data) => {
@@ -35,13 +36,14 @@
     };
 
     const addMarker = (lat, lng, data, iconPath) => {
-      const marker = new google.maps.Marker({ position: { lat, lng }, map, icon: {url: iconPath}});
+      const marker = new google.maps.Marker({ position: { lat, lng }, map, icon: { url: iconPath } });
       marker.addListener('click', evt => onMarkerClick(evt, marker, data));
       markers.push(marker);
+      return marker;
     };
 
     const addStop = (lat, lng, data, iconPath) => {
-      addMarker(lat, lng, data, iconPath);
+      const marker = addMarker(lat, lng, data, iconPath);
       if (markers.length >= 2) {
         const lineSymbol = { path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW };
         const path = [markers[markers.length - 2].position, markers[markers.length - 1].position];
@@ -51,6 +53,7 @@
           icons: [{ icon: lineSymbol }],
         });
       }
+      return marker;
     }
 
     async function initMap() {
@@ -61,24 +64,47 @@
         zoom: 10
       });
 
+      popup = new google.maps.InfoWindow();
+
 
       // Add longpress handlers
       let mPressDate = null;
+
+      const onAddMarker = function(evt) {
+        const now = +new Date;
+        if (!popup.isVisible && mPressDate && now - mPressDate > 300) {
+          mPressDate = null;
+          const marker = addMarker(evt.latLng.lat(), evt.latLng.lng(), 'Custom Marker', redMarker);
+          const cusEventPopup = '<table class="custom-event-popup"><tr><td>Who</td><td><input type="text"/></td></tr><tr><td><label>Where</label></td><td><input type="text"/></td></tr><tr><td><label>When</label></td><td><input type="text"/></td></tr><tr></tr><tr><td colspan="2"><button type="button">Save</button></td></tr></table>'
+          popup.setContent(cusEventPopup);
+          popup.open(map, marker);
+          popup.isVisible = true;
+
+          popup.addListener('domready', function(evt) {
+            document.querySelector('.gm-ui-hover-effect').addEventListener('click', () => {
+              popup.isVisible = false
+            });
+            const popupNode = document.querySelector('.custom-event-popup');
+            const submitBtnNode = popupNode.querySelector('button');
+            submitBtnNode.addEventListener('click', () => {
+              const data = Array.from(popupNode.querySelectorAll('input[type="text"')).map(textNode => textNode.value).join(', ');
+              console.log(data);
+              popup.close();
+              popup.isVisible = false;
+            })
+          });
+        }
+      };
+
       map.addListener('mousedown', function() {
         mPressDate = +new Date;
       });
-      map.addListener('mouseup', function(evt) {
-        const now = +new Date;
-        console.log(now - mPressDate);
-        if (now - mPressDate > 300) {
-          console.log('longpress', evt);
-          addMarker(evt.latLng.lat(),evt.latLng.lng(), 'Custom Marker', redMarker);
-        }
-      });
 
-      addStop(45, -80, "data1", redMarker);
-      addStop(44, -80, "data2", blueMarker);
-      addStop(43, -80, "data3", greenMarker);
+      map.addListener('drag', function() {
+        mPressDate = null;
+      })
+      map.addListener('mouseover', onAddMarker);
+      map.addListener('mouseup', onAddMarker);
     }
 
   </script>
