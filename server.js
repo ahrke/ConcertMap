@@ -71,10 +71,11 @@ app.get("/", (req, res) => {
     console.log("App listening on port 8080");
   }
 
-  if (process.env.SSL_CERT && process.env.SSL_CERT_KEY) {
-    const privateKey = fs.readFileSync(process.env.SSL_CERT, 'utf8');
-    const certificate = fs.readFileSync(process.env.SSL_CERT_KEY, 'utf8');
-    const httpsServer = https.createServer({ key: privateKey, cert: certificate }, app);
+  if (process.env.SSL_CERT && process.env.SSL_CERT_KEY && process.env.SSL_CA) {
+    const privateKey = fs.readFileSync(process.env.SSL_CERT_KEY, 'utf8');
+    const certificate = fs.readFileSync(process.env.SSL_CERT, 'utf8');
+    const ca = fs.readFileSync(process.env.SSL_CA, 'utf8');
+    const httpsServer = https.createServer({ key: privateKey, cert: certificate, ca}, app);
     await getListenPromise(httpsServer, 443, BIND_HOST);
     console.log("App listening on SSL port 443");
   }
