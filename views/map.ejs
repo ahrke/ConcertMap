@@ -54,12 +54,28 @@
     }
 
     async function initMap() {
-      const { coords } = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res));
+      // const { coords } = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res));
       map = new google.maps.Map(document.getElementById('map'), {
         // center: { lat: coords.latitude, lng: coords.longitude },
         center: { lat: 43.761539, lng: -79.411079 },
         zoom: 10
       });
+
+
+      // Add longpress handlers
+      let mPressDate = null;
+      map.addListener('mousedown', function() {
+        mPressDate = +new Date;
+      });
+      map.addListener('mouseup', function(evt) {
+        const now = +new Date;
+        console.log(now - mPressDate);
+        if (now - mPressDate > 300) {
+          console.log('longpress', evt);
+          addMarker(evt.latLng.lat(),evt.latLng.lng(), 'Custom Marker', redMarker);
+        }
+      });
+
       addStop(45, -80, "data1", redMarker);
       addStop(44, -80, "data2", blueMarker);
       addStop(43, -80, "data3", greenMarker);
