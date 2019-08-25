@@ -9,7 +9,6 @@ const distance = (loc1, loc2) => {
 
 // We call songkick to request the metroId of a certain city
 let getMetroId = (loc) => {
-  console.log(loc)
   return request(`https://api.songkick.com/api/3.0/search/locations.json?location=geo:${loc.latitude},${loc.longitude}&apikey=${SONGKICK}`)
 }
 

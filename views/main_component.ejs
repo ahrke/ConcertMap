@@ -8,12 +8,14 @@
     <link rel="stylesheet" href="/styles/layout.css" type="text/css" />
     <link rel="stylesheet" href="/styles/artist.css" type="text/css" />
     <link rel="stylesheet" href="/styles/main_component.css" type="text/css" />
+    <link rel="stylesheet" href="/styles/list_area.css" type="text/css" />
     <link href="https://fonts.googleapis.com/css?family=Raleway&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 
     <script type="text/javascript" src="/vendor/jquery-3.0.0.js"></script>
     <script type="text/javascript" src="/scripts/app.js"></script>
     <script type="text/javascript" src="/scripts/spotify.js"></script>
+    <script type="text/javascript" src="/scripts/songkick.js"></script>
     <script type="text/javascript" src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
   </head>
 
@@ -21,13 +23,30 @@
     <% include partials/__nav %>
 
     <div id="mainArea">
-      <section id="listArea">
+      <section id="listArea" class='scroll'>
 
         <h1>listArea</h1>
+        <ul>
+          <% for (let concert of concerts) { %>
+            <li>
+              <div class='concertListing'>
+                <img src='<%= concert.image640 %>'>
+                <p>
+                  <%= concert.concertName %>
+                  <%= concert.start.date %>
+                  <%= concert.start.time %>
+                </p>
+              </div>
+            </li>
+          <% } %>
+        </ul>
+        <h2>
+
+        </h2>
       </section>
 
 
-      <section id="artistArea">
+      <section id="artistArea" class='scroll'>
         <div id="artists"></div>
       </section>
 
@@ -40,6 +59,8 @@
     </main>
 
     <script type="text/javascript">
+      let concerts = "<%= concerts.map(concert => concert.performers.map(performer => performer.displayName.replace(/[^a-zA-Z ]/g, ''))).join(', ') %>".split(',')
+      console.log(concerts)
       function getHashParams() {
         var hashParams = {};
         var e, r = /([^&;=]+)=?([^&;]*)/g,
@@ -59,7 +80,7 @@
       let artist = {}
 
 
-      getArtistsInfo(["kendrick","backstreet"],hashParams.access_token)
+      getArtistsInfo(concerts,hashParams.access_token)
         .then(res => {
           $("#artistArea").css('display','flex');
             artistsDisplay(res);

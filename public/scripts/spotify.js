@@ -15,11 +15,17 @@ const getArtistsInfo = async (artists, access_token) => {
     })
 
     // Create an object to hold artist information
+    if (artistInfo.artists.items.length === 0) {
+      continue;
+    }
+    console.log(artistInfo.artists.items)
     let a = artistInfo.artists.items[0];
-    aObj.name = a.name;
-    aObj.href = a.href;
-    aObj.id = a.id;
-    aObj.image640 = a.images[0].url;
+    aObj.name = a.name || 0;
+    aObj.href = a.href || 0;
+    aObj.id = a.id || 0;
+    if(a.images[0]) {
+      aObj.image640 = a.images[0].url;
+    }
 
     let albumUrl = `https://api.spotify.com/v1/artists/${a.id}/albums?market=ES&limit=2`
     let albumInfo = await $.ajax({

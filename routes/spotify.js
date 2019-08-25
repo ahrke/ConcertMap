@@ -1,11 +1,16 @@
 const express = require('express');
 const router = express.Router();
-const spotifyApi = require('../api/spotify');
+const songkickApi = require('../api/songkick');
 
 module.exports = () => {
   router.get('/', (req, res) => {
-    console.log(req.hash)
-    res.render("main_component")
+    songkickApi.getConcerts(43.645144, -79.503008,'2019-08-25').then(concerts => {
+      let concertList = {
+        concerts: concerts
+      }
+
+      res.render("main_component", concertList)
+    })
   })
 
   return router;
