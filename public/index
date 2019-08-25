@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Meta Information -->
+    <title>ConcertMap - Home Page</title>
+
+    <!-- External CSS -->
+    <link rel="stylesheet" href="/vendor/normalize-4.1.1.css" type="text/css" />
+
+    <!-- Font Files -->
+    <link href="https://fonts.googleapis.com/css?family=Cabin|Lobster|Lobster+Two&display=swap" rel="stylesheet">
+
+    <!-- Clear default stylings -->
+    <style>
+      html {
+        box-sizing: border-box;
+      }
+      *, *:before, *:after {
+        box-sizing: border-box;
+        padding: 0;
+        margin: 0;
+      }
+    </style>
+
+    <!-- App CSS -->
+    <link rel="stylesheet" href="/styles/layout.css" type="text/css" />
+
+    <!-- External JS -->
+    <script type="text/javascript" src="/vendor/jquery-3.0.0.js"></script>
+
+    <!-- App JS -->
+
+  </head>
+
+  <body>
+    Hello, this is ConcertMap
+
+
+    <!-- We'd like to have a button that sends users back to top if they've scrolled all the way down -->
+
+
+    <!-- collection of javascript files. Loading at end to ensure document is complete before these get loaded -->
+    <script type="text/javascript" src="/scripts/spotify.js"></script>
+
+  </body>
+</html>
+

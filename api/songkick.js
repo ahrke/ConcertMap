@@ -1,20 +1,109 @@
 const request = require('request-promise-native');
-const SONGKICK_KEY = process.env.SONGKICK;
+const { SONGKICK } = require('../config');
+const { getPreciseDistance } = require('geolib');
 
-let getMetroId = (location) => {
-  return request(`https://api.songkick.com/api/3.0/search/locations.json?query=${location}&apikey={your_api_key}`);
+// We need a way to calculate the distance between two coordinates to determine distance between venue and user
+const distance = (loc1, loc2) => {
+  return getPreciseDistance(loc1, loc2);
 }
 
+// returns an array of events that are a given distance away
+// @params distanceAway - NUM representing km of distance away
+const eventsNumOfDistanceAway = (events, distanceAway) => {
+  events.resultsPage.results.location.filter(loc => {
+    let locCoordinates = {
+      latitude: loc.metroArea.lat,
+      longitude: loc.metroArea.lng
+    }
+    // d represents distance between the originally given location and the current event result location
+    let d = distance(coordinates, locCoordinates)
+    console.log(coordinates,locCoordinates)
+
+    // we only want events that are within 8km of the given coordinates
+    return d < distanceAway
+  })
+}
+
+// We call songkick to request the metroId of a certain city
+let getMetroId = (loc) => {
+  console.log(loc)
+  return request(`https://api.songkick.com/api/3.0/search/locations.json?location=geo:${loc.latitude},${loc.longitude}&apikey=${SONGKICK}`)
+}
+
+// Using songkick's metroID, we can then find events happening in the city
 let getMetro = (metroId) => {
-  return request(`https://api.songkick.com/api/3.0/metro_areas/${metroId}/calendar.json?apikey=${SONGKICK_KEY}`);
+  return request(`https://api.songkick.com/api/3.0/metro_areas/${metroId}/calendar.json?apikey=${SONGKICK}`);
 }
 
-let getConcerts = async (location) => {
-  let metroId = await getMetroId(location);
-  let metroResults = await metro(metroId.resultsPage.results.location.metroArea.id);
+// This will help us get collection of events/concerts happening in the chosen city
+// returns an array of event objects that meet the dates we're interested in
+let getConcerts = async (lat, lng, date) => {
+  let coordinates = {
+    latitude: lat,
+    longitude: lng
+  }
 
-  return metroResults.resultsPage.results;
+  // Perform search for events occuring near given coordinates
+  let metroAreasSearch = await getMetroId(coordinates);
+
+  // We'll use an array to represent metroIds already in the metroAreasIds array
+  let mAreaList = [];
+
+  // We need a collection of MetroAreaIds. Using new Set() to create a unique array
+  let metroAreasIds = JSON.parse(metroAreasSearch).resultsPage.results.location.map(loc => {
+    let locCoordinates = {
+      latitude: loc.metroArea.lat || 0,
+      longitude: loc.metroArea.lng || 0
+    }
+
+    let d = distance(coordinates, locCoordinates)
+
+    return {
+      loc,
+      d
+    };
+  })
+  .sort((a,b) => a.d - b.d)
+  .filter(loc_inner => {
+    if (mAreaList.includes(loc_inner.loc.metroArea.id)) {
+      return false;
+    } else {
+      mAreaList.push(loc_inner.loc.metroArea.id)
+
+      return true;
+    }
+  })
+  .splice(0,3)
+  .map(ma => {
+    return ma.loc.metroArea.id
+  });
+
+  let listOfEvents = [];
+
+  for (let metroId of metroAreasIds) {
+    let metroResults = await getMetro(metroId);
+    let events = JSON.parse(metroResults).resultsPage.results.event;
+
+    for (let event of events) {
+      if(event.start.date == date) {
+
+        let toAdd = {
+          songkick_event_id: event.id,
+          songkick_uri: event.uri,
+          concertName: event.displayName,
+          start: event.start,
+          performers: event.performance,
+          venue: event.venue.displayName
+        }
+        listOfEvents.push(toAdd)
+      }
+    }
+  }
+
+  return listOfEvents
 }
+
+// getConcerts(43.645144, -79.403008,'2019-08-25').then(res => console.log(res))
 
 module.exports = {
   getConcerts

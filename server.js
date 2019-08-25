@@ -2,9 +2,10 @@
 require('dotenv').config();
 
 // Web server config
-const ENV = process.env.ENV || "development";
-const BIND_HOST = process.env.BIND_HOST || '0.0.0.0';
-const express = require("express");
+const BIND_HOST  = process.env.BIND_HOST || '0.0.0.0';
+const PORT       = process.env.PORT || 3000;
+const ENV        = process.env.ENV || "development";
+const express    = require("express");
 const bodyParser = require("body-parser");
 const sass = require("node-sass-middleware");
 const app = express();
@@ -38,11 +39,12 @@ app.use(express.static("public"));
 // Note: Feel free to replace the example routes below with your own
 const usersRoutes = require("./routes/users");
 const widgetsRoutes = require("./routes/widgets");
+const spotifyRoutes = require('./routes/spotify');
+const songkickRoutes = require('./routes/songkick');
 
 // Mount all resource routes
 // Note: Feel free to replace the example routes below with your own
-// app.use("/api/users", usersRoutes(db));
-// app.use("/api/widgets", widgetsRoutes(db));
+app.use("/api/songkick", songkickRoutes());
 // Note: mount other resources here, using the same pattern above
 
 

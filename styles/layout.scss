@@ -1,4 +1,6 @@
-// See: https://sass-lang.com/
+* {
+  box-sizing: border-box;
+}
 
 body {
   background-color: #EEE;
@@ -7,3 +9,4 @@ body {
     color: #244751;
   }
 }
+
