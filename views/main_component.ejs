@@ -8,10 +8,13 @@
     <link rel="stylesheet" href="/styles/layout.css" type="text/css" />
     <link rel="stylesheet" href="/styles/artist.css" type="text/css" />
     <link rel="stylesheet" href="/styles/main_component.css" type="text/css" />
+    <link href="https://fonts.googleapis.com/css?family=Raleway&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 
     <script type="text/javascript" src="/vendor/jquery-3.0.0.js"></script>
     <script type="text/javascript" src="/scripts/app.js"></script>
+    <script type="text/javascript" src="/scripts/spotify.js"></script>
+    <script type="text/javascript" src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
   </head>
 
   <body>
@@ -21,8 +24,6 @@
       <section id="listArea">
 
         <h1>listArea</h1>
-        <input id="searchArtist" type="text" placeholder="enter artist"></input>
-        <button id="btn">Get Artist</button>
       </section>
 
 
@@ -57,55 +58,13 @@
 
       let artist = {}
 
-      document.querySelector("#btn").onclick = () => {
-        let searchText = document.querySelector("#searchArtist").value
-        $.ajax({
-          url: "https://api.spotify.com/v1/search?q=" + searchText + "&type=artist",
-          type: "GET",
-          headers: {
-            "Authorization": "Bearer " + hashParams.access_token
-          }
-        }).then(resSearch => {
-          let a = resSearch.artists.items[0];
-          artist.name = a.name;
-          artist.href = a.href
-          artist.id = a.id
-          artist.image640 = a.images[0].url
 
-          let albumUrl = `https://api.spotify.com/v1/artists/${a.id}/albums?market=ES&limit=2`
+      getArtistsInfo(["kendrick","backstreet"],hashParams.access_token)
+        .then(res => {
+          $("#artistArea").css('display','flex');
+            artistsDisplay(res);
 
-          $.ajax({
-            url: albumUrl,
-            type: "GET",
-            headers: {
-              "Authorization": "Bearer " + hashParams.access_token
-            }
-          }).then(resAlbums => {
-            let a = resAlbums
-
-            $("#artistArea").css({ 'display' : 'block', 'flex' : 1 });
-            document.querySelector("#artists").innerHTML += `
-              <div class='artist_container'>
-                <img src="${artist.image640}">
-                <div class="artist_info">
-                  <h1 class='artist_name'>${artist.name}</h1>
-                  <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Quo eius voluptates nulla recusandae eveniet quaerat ducimus? Mollitia sequi delectus eveniet, vel placeat autem dicta eligendi repudiandae labore laboriosam aut quod, nemo eaque quibusdam odit, rem ipsa. Obcaecati, ratione iure numquam quam aut nobis vel cum itaque reiciendis debitis dolore, inventore quod vero. Vel fugiat neque voluptates nobis officiis sapiente earum!</p>
-                  <iframe src="https://open.spotify.com/embed/album/${a.items[0].id}" width="300" height="200" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
-                </div>
-              </div>
-              `
-            // console.log(a)
-            // document.querySelector("#p1").innerHTML = `
-            //       name: ${artist.name}
-            //       link: ${artist.href}
-            //       id: ${artist.id}
-            //     `
-            // document.querySelector("#img1").src = artist.image640
-            // document.querySelector("#play").innerHTML = `<iframe src="https://open.spotify.com/embed/album/${a.items[0].id}" width="300" height="200" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>`
-
-          })
         })
-      }
 
     </script>
   </body>
