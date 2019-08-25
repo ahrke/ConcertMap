@@ -7,23 +7,6 @@ const distance = (loc1, loc2) => {
   return getPreciseDistance(loc1, loc2);
 }
 
-// returns an array of events that are a given distance away
-// @params distanceAway - NUM representing km of distance away
-const eventsNumOfDistanceAway = (events, distanceAway) => {
-  events.resultsPage.results.location.filter(loc => {
-    let locCoordinates = {
-      latitude: loc.metroArea.lat,
-      longitude: loc.metroArea.lng
-    }
-    // d represents distance between the originally given location and the current event result location
-    let d = distance(coordinates, locCoordinates)
-    console.log(coordinates,locCoordinates)
-
-    // we only want events that are within 8km of the given coordinates
-    return d < distanceAway
-  })
-}
-
 // We call songkick to request the metroId of a certain city
 let getMetroId = (loc) => {
   console.log(loc)

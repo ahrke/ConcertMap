@@ -45,6 +45,7 @@ const songkickRoutes = require('./routes/songkick');
 // Mount all resource routes
 // Note: Feel free to replace the example routes below with your own
 app.use("/api/songkick", songkickRoutes());
+app.use("/api/spotify", spotifyRoutes());
 // Note: mount other resources here, using the same pattern above
 
 

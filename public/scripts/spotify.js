@@ -1,4 +1,4 @@
-// const { SPOTIFY } = process.env.SPOTIFY;
+ import { SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_KEY } from '../../config';
 
 // const request = require('request-promise-native');
 
@@ -13,7 +13,8 @@
 $.get( {
   url: 'https://api.spotify.com/v1/search?q=glass%20animals&type=artist',
   headers: {
-    Authorization: 'Bearer BQDlAu2Mcr38b8HrmSwHS8tYuH29Dso-wMSWvi6bAiUPfn9jVnrQmNeTyldH-dVj_UGUGnw80UMbyUnDJ2cVCdWe_PH6i3CTn4t_3z9oTnLK5aAjHtmwF7fFamOdRwpU0raDjgn8eBClwDdk8_N2kP_4qpVZKu06WEXwyP4MPbq6AGxy-KoqnF5SCSnuxzmdFyzUC4cY5cfNs0yJKftHQYUaERnTxBfnZBDMug1g-oJkAvlkdI3xl0Xu7ZH3ttAH459QaPXUqYB8QFpj-tRaf3Rw5tEJ1w',
+    client_id: SPOTIFY_CLIENT_ID,
+    client_ket: SPOTIFY_CLIENT_KEY,
     "Content-Type": 'application/json',
     "Accept": "application/json"
   }

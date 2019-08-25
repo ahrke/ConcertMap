@@ -13,5 +13,19 @@
 
   <body>
     <h1>Hello World!</h1>
+    <a href="https://accounts.spotify.com/authorize?client_id=8e56940777104d648d686ef57ee477bd&redirect_uri=http:%2F%2Flocalhost%3A3000%2Fapi%2Fspotify&scope=user-read-private%20user-read-email&response_type=token&state=123">Please log in to your spotify account</a>
+
+    <h1 id="token"></h1>
+    <p id="p1"></p>
+
+    <script type="text/javascript">
+      let token = ''
+      document.getElementById("token").innerHTML = "whoa";
+      document.getElementById("p1").innerHTML = "New text!";
+      if (window.location.hash) {
+        token = window.location.hash.substr(1).split('&')[0].split("=")[1]
+        document.querySelector("#token").value = token;
+      }
+    </script>
   </body>
 </html>

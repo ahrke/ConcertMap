@@ -1,3 +1,12 @@
-const { SPOTIFY_CLIENT_ID } = require('../config.js');
+const express = require('express');
+const router = express.Router();
+const spotifyApi = require('../api/spotify');
 
-console.log(SPOTIFY_CLIENT_ID);
+module.exports = () => {
+  router.get('/', (req, res) => {
+    res.render("artist")
+  })
+
+  return router;
+}
+
