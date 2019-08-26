@@ -1,0 +1,28 @@
+body {
+  background:
+    linear-gradient(rgba(0,0,0,0.7), rgba(145, 44, 128, 0.5)),
+    url('../images/concert_1.jpg');
+  background-position: center;
+  display: flex;
+}
+
+a {
+  display: flex;
+  text-decoration: none;
+}
+
+#loginBtn {
+  color: whitesmoke;
+  margin: auto;
+  font-size: 4rem;
+}
+
+.container {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  margin: auto;
+  justify-content: center;
+  flex-direction: column;
+  color: yellow;
+}
