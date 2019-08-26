@@ -85,6 +85,32 @@
       return marker;
     }
 
+    async function getVenueDetails(query) {
+      service = new google.maps.places.PlacesService(map);
+
+      const placesRes = await new Promise((resolve, reject) => {
+        service.findPlaceFromQuery({ query, fields: ['place_id'] }, function(results, status) {
+          if (status === google.maps.places.PlacesServiceStatus.OK) {
+            resolve(results);
+          } else {
+            reject(status);
+          }
+        });
+      });
+
+      const detailRes = await new Promise((resolve, reject) => {
+        service.getDetails({ placeId: placesRes[0]['place_id'] }, function(place, status) {
+          if (status === google.maps.places.PlacesServiceStatus.OK) {
+            resolve(place);
+          } else {
+            reject(status);
+          }
+        });
+      });
+      console.log(placesRes[0]);
+      console.log(detailRes);
+    };
+
     async function initMap() {
       // const { coords } = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res));
       map = new google.maps.Map(document.getElementById('map'), {
@@ -196,7 +222,8 @@
     }
 
   </script>
-  <script src="https://maps.googleapis.com/maps/api/js?key=<%=apiKey%>&callback=initMap" async defer></script>
+  <script src="https://maps.googleapis.com/maps/api/js?libraries=places&key=<%=apiKey%>&callback=initMap" async
+    defer></script>
 </body>
 
 </html>
