@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Home Page</title>
 
     <link rel="stylesheet" href="/vendor/normalize-4.1.1.css" type="text/css" />
@@ -24,17 +25,17 @@
 
     <div id="mainArea">
       <section id="listArea" class='scroll'>
-
-        <h1>listArea</h1>
         <ul>
           <% for (let concert of concerts) { %>
-            <li>
+            <li id="<%= concert.songkick_event_id %>" onclick="showArtist(this.id)">
               <div class='concertListing'>
                 <img src='<%= concert.image640 %>'>
-                <p>
-                  <%= concert.concertName %>
-                  <%= concert.start.date %>
-                  <%= concert.start.time %>
+                <p class='listDetails'>
+                  <span class='listTitle'><%= concert.concertName.split('(')[0] %></span>
+                  <span class='listDateArea'>
+                    <span class='listDate'><%= concert.start.date %></span>
+                    <span class='listTime'><%= concert.start.time %></span>
+                  </span>
                 </p>
               </div>
             </li>
@@ -45,10 +46,11 @@
         </h2>
       </section>
 
-
-      <section id="artistArea" class='scroll'>
-        <div id="artists"></div>
-      </section>
+      <div class="toFloat">
+        <section id="artistArea" class='scroll'>
+          <div id="artists"></div>
+        </section>
+      </div>
 
 
       <section id="mapArea">
@@ -58,9 +60,30 @@
 
     </main>
 
+    <%
+    let collection = concerts.map(concert => {
+      let artists = concert.performers.map(performer => performer.displayName.replace(/[^a-zA-Z ]/g, '')).join(',');
+      return [
+        concert.songkick_event_id,
+        artists
+      ]
+    }).join('||')
+
+    %>
+
     <script type="text/javascript">
-      let concerts = "<%= concerts.map(concert => concert.performers.map(performer => performer.displayName.replace(/[^a-zA-Z ]/g, ''))).join(', ') %>".split(',')
-      console.log(concerts)
+
+      // We need to retrieve the collection of artists, as well as the id of the event/concert they belong to
+      let collection = "<%= collection %>".split('||').map(item => {
+        let id = item.split(',')[0];
+        let artists = item.split(',').slice(1)
+        return {
+          id,
+          artists
+        }
+      })
+      console.log(collection)
+
       function getHashParams() {
         var hashParams = {};
         var e, r = /([^&;=]+)=?([^&;]*)/g,
@@ -77,15 +100,21 @@
         hashParams = getHashParams();
       }
 
-      let artist = {}
+      let artists = {}
 
-
-      getArtistsInfo(concerts,hashParams.access_token)
+      getArtistsInfo(collection,hashParams.access_token)
         .then(res => {
-          $("#artistArea").css('display','flex');
-            artistsDisplay(res);
-
+          artists = res;
+          console.log("from main_component, artists: ",artists)
         })
+        .catch(e => console.error("error from getArtistInfo call: ",e))
+
+      let showArtist = (id) => {
+        console.log("showArtist called from id ==> ",id)
+        $("#artistArea").css('display','flex');
+        console.log("displaying artists[id][0] info ===> ",artists[id][0])
+        artistDisplay(artists[id][0]);
+      }
 
     </script>
   </body>
