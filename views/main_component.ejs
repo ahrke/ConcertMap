@@ -190,12 +190,31 @@
       let customMarkerNode;
 
       const onMarkerClick = (evt, marker, data) => {
-        console.log("Popup", marker.position.lat(), marker.position.lng(), data);
+        if (marker.hoverPopup) {
+          marker.hoverPopup.setMap(null);
+          delete marker.hoverPopup;
+        }
         showArtist(data.songkick_event_id);
+      };
+
+      const onMarkerMouseOver = (evt, marker, data) => {
+        const artistsStr = data.performers.map(p => p.displayName).join(', ');
+        marker.hoverPopup = new google.maps.InfoWindow();
+        marker.hoverPopup.setContent(`<p>${data.concertName}</p>`);
+        marker.hoverPopup.open(map, marker);
+      };
+
+      const onMarkerMouseOut = (evt, marker, data) => {
+        if (marker.hoverPopup) {
+          marker.hoverPopup.setMap(null);
+          delete marker.hoverPopup;
+        }
       };
 
       const registerMarker = (marker, data) => {
         marker.addListener('click', evt => onMarkerClick(evt, marker, data));
+        marker.addListener('mouseover', evt => onMarkerMouseOver(evt, marker, data));
+        marker.addListener('mouseout', evt => onMarkerMouseOut(evt, marker, data))
         markers.push(marker);
       };
 
