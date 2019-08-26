@@ -1,6 +1,6 @@
 const request = require('request-promise-native');
-const { SONGKICK } = require('../config');
 const { getPreciseDistance } = require('geolib');
+const SONGKICK = process.env.SONGKICK_API_KEY;
 
 // We need a way to calculate the distance between two coordinates to determine distance between venue and user
 const distance = (loc1, loc2) => {
@@ -75,7 +75,9 @@ let getConcerts = async (lat, lng, date) => {
           concertName: event.displayName,
           start: event.start,
           performers: event.performance,
-          venue: event.venue.displayName
+          venue: event.venue.displayName,
+          lat: event.venue.lat || event.location.lat,
+          lng: event.venue.lng || event.location.lng
         }
         listOfEvents.push(toAdd)
       }

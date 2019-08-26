@@ -98,6 +98,10 @@
         });
       });
 
+      if (placesRes) {
+
+      }
+
       const detailRes = await new Promise((resolve, reject) => {
         service.getDetails({ placeId: placesRes[0]['place_id'] }, function(place, status) {
           if (status === google.maps.places.PlacesServiceStatus.OK) {
@@ -107,8 +111,8 @@
           }
         });
       });
-      console.log(placesRes[0]);
-      console.log(detailRes);
+
+      return
     };
 
     async function initMap() {
@@ -222,8 +226,7 @@
     }
 
   </script>
-  <script src="https://maps.googleapis.com/maps/api/js?libraries=places&key=<%=apiKey%>&callback=initMap" async
-    defer></script>
+
 </body>
 
 </html>

@@ -53,7 +53,7 @@ app.use("/api/spotify", spotifyRoutes());
 // Warning: avoid creating more routes in this file!
 // Separate them into separate routes files (see above).
 app.get("/", (req, res) => {
-  res.render("index", {CLIENT_ID: SPOTIFY_CLIENT_ID});
+  res.render("index", {baseURI: process.env.BASE_URI, spotifyApiID: process.env.SPOTIFY_API_ID, googleApiKey: process.env.GOOGLE_API_KEY});
 });
 
 (async() => {
