@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta name="viewport" content="initial-scale=1.0">
+  <meta charset="utf-8">
+  <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
+  <style>
+    #map {
+      height: 70%;
+      max-width: 800px;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="map"></div>
+  <script>
+    const redMarker = 'https://maps.google.com/mapfiles/ms/icons/red-dot.png';
+    const blueMarker = 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png';
+    const greenMarker = 'https://maps.google.com/mapfiles/ms/icons/green-dot.png';
+    const markers = [];
+    const lines = [];
+    let map;
+
+    const onMarkerClick = (evt, marker, data) => {
+      console.log(marker.position.lat(), marker.position.lng(), data);
+    };
+
+    const addMarker = (lat, lng, data, iconPath) => {
+      const marker = new google.maps.Marker({ position: { lat, lng }, map, icon: {url: iconPath}});
+      marker.addListener('click', evt => onMarkerClick(evt, marker, data));
+      markers.push(marker);
+    };
+
+    const addStop = (lat, lng, data, iconPath) => {
+      addMarker(lat, lng, data, iconPath);
+      if (markers.length >= 2) {
+        const lineSymbol = { path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW };
+        const path = [markers[markers.length - 2].position, markers[markers.length - 1].position];
+        const line = new google.maps.Polyline({
+          path,
+          map,
+          icons: [{ icon: lineSymbol }],
+        });
+      }
+    }
+
+    async function initMap() {
+      const { coords } = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res));
+      map = new google.maps.Map(document.getElementById('map'), {
+        // center: { lat: coords.latitude, lng: coords.longitude },
+        center: { lat: 43.761539, lng: -79.411079 },
+        zoom: 10
+      });
+      addStop(45, -80, "data1", redMarker);
+      addStop(44, -80, "data2", blueMarker);
+      addStop(43, -80, "data3", greenMarker);
+    }
+
+  </script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=<%=apiKey%>&callback=initMap" async defer></script>
+</body>
+
+</html>
