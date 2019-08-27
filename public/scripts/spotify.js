@@ -55,11 +55,9 @@ const artistDisplay = (artist) => {
   document.querySelector("#artists").innerHTML += `
     <div class='artist_container'>
       <img src="${artist.image640}">
-      <div class="artist_info">
-        <h1 class='artist_name'>${artist.name}</h1>
+      <h1 class='artist_name'>${artist.name}</h1>
 
-        <iframe src="${artist.iframeUrl}" width="300" height="600" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
-      </div>
+      <iframe src="${artist.iframeUrl}" width="300" height="100%" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
     </div>
   `
 }
@@ -76,60 +74,6 @@ const artistsDisplay = (res) => {
       </div>
     </div>
   `
-  // for (let artist of res) {
-  //   artistCarouselItems += `
-  //     <div class="carousel-item active">
-  //       <div class='artist_container'>
-  //         <img src="${artist.image640}">
-  //         <div class="artist_info">
-  //           <h1 class='artist_name'>${artist.name}</h1>
-  //           <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Quo eius voluptates nulla recusandae eveniet quaerat ducimus? Mollitia sequi delectus eveniet, vel placeat autem dicta eligendi repudiandae labore laboriosam aut quod, nemo eaque quibusdam odit, rem ipsa. Obcaecati, ratione iure numquam quam aut nobis vel cum itaque reiciendis debitis dolore, inventore quod vero. Vel fugiat neque voluptates nobis officiis sapiente earum!</p>
-  //           <iframe src="${artist.iframeUrl}" width="300" height="200" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
-  //         </div>
-  //       </div>
-  //     </div>
-  //   `
-  // }
-
-  // document.querySelector("#artists").innerHTML += `
-  //   <div id="carouselExampleControls" class="carousel slide" data-ride="carousel">
-  //     <div class="carousel-inner">
-  //       ${artistCarouselItems}
-  //     </div>
-  //     <a class="carousel-control-prev" href="#carouselExampleControls" role="button" data-slide="prev">
-  //       <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-  //       <span class="sr-only">Previous</span>
-  //     </a>
-  //     <a class="carousel-control-next" href="#carouselExampleControls" role="button" data-slide="next">
-  //       <span class="carousel-control-next-icon" aria-hidden="true"></span>
-  //       <span class="sr-only">Next</span>
-  //     </a>
-  //   </div>
-  //  `
 }
-// $.get( {
-//   url: 'https://api.spotify.com/v1/search?q=glass%20animals&type=artist',
-//   headers: {
-//     client_id: SPOTIFY_CLIENT_ID,
-//     "Content-Type": 'application/json',
-//     "Accept": "application/json"
-//   }
-// })
-//   .done(res => {
-//     console.log(res)
-//     alert(res)
-//   })
 
-//       let a = resAlbums
 
-//       $("#artistArea").css({ 'display' : 'block', 'flex' : 1 });
-//       document.querySelector("#artists").innerHTML += `
-//         <div class='artist_container'>
-//           <img src="${artist.image640}">
-//           <div class="artist_info">
-//             <h1 class='artist_name'>${artist.name}</h1>
-//             <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Quo eius voluptates nulla recusandae eveniet quaerat ducimus? Mollitia sequi delectus eveniet, vel placeat autem dicta eligendi repudiandae labore laboriosam aut quod, nemo eaque quibusdam odit, rem ipsa. Obcaecati, ratione iure numquam quam aut nobis vel cum itaque reiciendis debitis dolore, inventore quod vero. Vel fugiat neque voluptates nobis officiis sapiente earum!</p>
-//             <iframe src="https://open.spotify.com/embed/album/${a.items[0].id}" width="300" height="200" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
-//           </div>
-//         </div>
-//         `

@@ -2,27 +2,65 @@
   position: fixed;
   width: 100vw;
   height: 100vh;
-  display: flex;
-  flex-direction: row;
+  display: grid;
+  grid-template-columns: 1fr 3fr;
+  grid-template-rows: 1fr 12fr;
+  grid-template-areas:
+    "nav nav"
+    "list map";
+  // display: flex;
+  // flex-direction: row;
+}
+
+#nav {
+  background-color: azure;
+  grid-area: nav;
+  ul {
+    list-style-type: none;
+
+    li {
+      float: right;
+      margin: 0 10px;
+    }
+  }
 }
 
 #listArea {
   padding: 0;
-  flex: 1;
-  width: 100%;
-  height: 100%;
+  grid-area: list;
+  // flex: 1;
+  // width: 100%;
+  // height: 100%;
   background-color: blueviolet;
-  margin: auto;
+  // margin: auto;
   overflow: scroll;
 }
 
-#map {
-  flex: 3;
-  width: 100%;
-  height: 100%;
+#mapArea {
+  grid-area: map;
+  // flex: 3;
+  // width: 100%;
+  // top: -30px;
+  // height: calc(100vh - 60px);
   background-color: chocolate;
-  margin: auto;
+  // margin: auto;
+  overflow: hidden;
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  grid-template-rows: 1fr;
+  grid-template-areas:
+    "artists nothing"
 }
+
+#map {
+  grid-column: 1/3;
+}
+
+// .toFloat {
+//   grid-area: artists;
+//   position: relative;
+// }
 
 #artistArea {
   background:
@@ -30,11 +68,12 @@
     url('../images/concert_1.jpg');
   background-position: center;
   display: none;
+  grid-area: artists;
   position: absolute;
   z-index: 5;
-  left: 25vw;
+  // left: 25vw;
   width: 25vw;
-  height: 100%;
+  height: 120%;
   overflow: scroll;
 }
 

@@ -4,7 +4,7 @@ const songkickApi = require('../api/songkick');
 
 module.exports = () => {
   router.get('/', (req, res) => {
-    songkickApi.getConcerts(43.645144, -79.503008, '2019-08-27')
+    songkickApi.getConcerts(43.645144, -79.503008, '2019-08-30')
       .then(concerts => {
         res.render("main_component", { concerts, googleApiKey: process.env.GOOGLE_API_KEY });
       })

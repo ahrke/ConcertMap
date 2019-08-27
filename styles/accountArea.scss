@@ -1,0 +1,44 @@
+.account-area {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr 8fr 4fr;
+  grid-template-areas:
+    "nav"
+    "userMap"
+    "userInfo";
+  width: 100vw;
+  height: 100vh;
+  position: fixed;
+}
+
+#nav {
+  background-color: azure;
+  grid-area: nav;
+  width: 100%;
+  padding: 20px;
+
+  .brand {
+    float: left;
+  }
+
+  ul {
+    display: inline;
+    list-style-type: none;
+
+    li {
+      float: right;
+      margin: 0 10px;
+    }
+  }
+}
+#nav::after {
+  clear: both;
+}
+
+.user-map {
+  background-color: darkcyan;
+}
+
+.user-info {
+  background-color: honeydew;
+}

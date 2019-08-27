@@ -41,10 +41,12 @@ const usersRoutes = require("./routes/users");
 const widgetsRoutes = require("./routes/widgets");
 const spotifyRoutes = require('./routes/spotify');
 const songkickRoutes = require('./routes/songkick');
+const accountRoutes = require('./routes/accounts');
 
 // Mount all resource routes
 // Note: Feel free to replace the example routes below with your own
 app.use("/api/songkick", songkickRoutes());
+app.use("/accounts", accountRoutes());
 app.use("/api/spotify", spotifyRoutes());
 // Note: mount other resources here, using the same pattern above
 
@@ -70,8 +72,8 @@ app.get("/", (req, res) => {
     await getListenPromise(httpServer, 80, BIND_HOST);
     console.log("App listening on port 80");
   } catch (err) {
-    await getListenPromise(httpServer, 8080, BIND_HOST);
-    console.log("App listening on port 8080");
+    await getListenPromise(httpServer, 3000, BIND_HOST);
+    console.log("App listening on port 3000");
   }
 
   if (process.env.SSL_CERT && process.env.SSL_CERT_KEY && process.env.SSL_CA) {

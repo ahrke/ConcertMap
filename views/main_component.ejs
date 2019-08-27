@@ -66,25 +66,31 @@
 </head>
 
 <body>
-  <% include partials/__nav %>
+
 
   <div id="mainArea">
-    <section id="listArea" class='scroll'>
+    <% include partials/__nav %>
+
+    <div id="listArea" class='scroll'>
       <ul>
       </ul>
       <h2>
 
       </h2>
-    </section>
-
-    <div class="toFloat">
-      <section id="artistArea" class='scroll'>
-        <div id="artists"></div>
-      </section>
     </div>
 
 
-    <div id="map"></div>
+
+    <div id="mapArea">
+      <div id="artistArea" class='scroll'>
+        <div id="artists"></div>
+      </div>
+
+      <div id="map">
+
+      </div>
+    </div>
+  </div>
 
     </main>
 
@@ -100,6 +106,18 @@
     %>
 
     <script type="text/javascript">
+
+    // document.addEventListener("click", (evt) => {
+    //     const artistArea = document.getElementById("artistArea");
+    //     let targetElement = evt.target; // clicked element
+
+    //     if(artistArea.style.display == 'flex') {
+    //       if (targetElement !== artistArea) {
+    //         artistArea.style.display = 'none'
+    //         console.log("we're inside")
+    //       }
+    //     }
+    // });
 
       const getMarkerListNode = (concert) => {
         return `<li id="${concert.songkick_event_id}" onclick="showArtist(this.id)">
