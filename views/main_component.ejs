@@ -10,16 +10,12 @@
   <link rel="stylesheet" href="/vendor/normalize-4.1.1.css" type="text/css" />
   <link rel="stylesheet" href="/vendor/border-box.css" type="text/css" />
   <link rel="stylesheet" href="/styles/layout.css" type="text/css" />
-  <link rel="stylesheet" href="/styles/artist.css" type="text/css" />
   <link rel="stylesheet" href="/styles/main_component.css" type="text/css" />
-  <link rel="stylesheet" href="/styles/list_area.css" type="text/css" />
   <link href="https://fonts.googleapis.com/css?family=Raleway&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
     integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 
   <script type="text/javascript" src="/vendor/jquery-3.0.0.js"></script>
-  <script type="text/javascript" src="/scripts/app.js"></script>
-  <script type="text/javascript" src="/scripts/spotify.js"></script>
   <script src="https://maps.googleapis.com/maps/api/js?libraries=places&key=<%=googleApiKey%>&callback=initMap" defer></script>
   <script type="text/javascript" src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
     integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
@@ -155,14 +151,14 @@
 
   <script>
 
-    let showArtist = (id) => {
+    const showArtist = (id) => {
       if (!artists[id]) return;
       const popupNode = document.querySelector('.content .main .popup');
       popupNode.classList.add('enabled');
       artistDisplay(artists[id][0], popupNode.querySelector('.artist'));
     }
 
-    const getMarkerListNode = (concert) => {
+    const getListNode = (concert) => {
       const wrapper = document.createElement('div');
       wrapper.innerHTML =
         `<li data-event-id="${concert.songkick_event_id}" onclick="showArtist(this.dataset.eventId)">
@@ -179,23 +175,31 @@
       return wrapper.childNodes[0];
     };
 
-    const renderMarkerList = (eventsRes) => {
-      const listNodes = [];
-      for (let eventRes of eventsRes) {
-        const listNode = getMarkerListNode(eventRes);
-        listNodes.push(listNode);
+    const registerListNode = (...listNodes) => {
+      const containerNode = document.querySelector('.nav-list');
+      for (let listNode of listNodes) {
         listNode.addEventListener('mouseenter', onListMouseEnter);
         listNode.addEventListener('mouseleave', onListMouseOut);
         listNode.querySelector('.locate-btn').addEventListener('click', onListLocate);
-        if (eventRes.lat && eventRes.lng) {
-          const marker = addMarker(eventRes.lat, eventRes.lng, eventRes, redMarker);
-          marker.listNode = listNode;
-          listNode.marker = marker;
-        }
       }
+      containerNode.append(...listNodes);
+    };
+
+    const renderMarkerList = (eventsRes) => {
+      const listNodes = [];
       const containerNode = document.querySelector('.nav-list');
       containerNode.childNodes.forEach(n => containerNode.removeChild(n));
-      containerNode.append(...listNodes);
+      for (let eventRes of eventsRes) {
+        const listNode = getListNode(eventRes);
+        listNodes.push(listNode);
+        if (eventRes.lat && eventRes.lng) {
+          const marker = getMarker(eventRes.lat, eventRes.lng, redMarker);
+          marker.listNode = listNode;
+          listNode.marker = marker;
+          registerMarker(marker, eventRes);
+        }
+      }
+      registerListNode(...listNodes);
     };
 
     const onDataLoad = () => {
@@ -269,17 +273,22 @@
       marker.addListener('click', evt => onMarkerClick(evt, marker, data));
       marker.addListener('mouseover', evt => onMarkerMouseOver(evt, marker, data));
       marker.addListener('mouseout', evt => onMarkerMouseOut(evt, marker, data))
+      if (!marker.listNode) {
+        marker.listNode = getListNode({songkick_event_id: 0, image640: null, concertName: data[0], start: {date: data[1], time: data[2]}});
+        marker.listNode.marker = marker;
+        registerListNode(marker.listNode);
+      }
       markers.push(marker);
     };
 
-    const addMarker = (lat, lng, data, iconPath) => {
-      const marker = new google.maps.Marker({ position: { lat, lng }, map, icon: { url: iconPath } });
-      registerMarker(marker, data);
-      return marker;
+    const getMarker = (lat, lng, iconPath) => {
+      iconPath = iconPath ? iconPath: redMarker;
+      return new google.maps.Marker({ position: { lat, lng }, map, icon: { url: iconPath } });
     };
 
     const addStop = (lat, lng, data, iconPath) => {
-      const marker = addMarker(lat, lng, data, iconPath);
+      const marker = getMarker(lat, lng, iconPath);
+      registerMarker(marker, data);
       if (markers.length >= 2) {
         const lineSymbol = { path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW };
         const path = [markers[markers.length - 2].position, markers[markers.length - 1].position];
@@ -347,7 +356,7 @@
           customMarkerNode.classList.remove('disabled');
         }
         const popupNode = document.querySelector('.custom-event-popup');
-        const data = Array.from(popupNode.querySelectorAll('input[type="text"]')).map(textNode => textNode.value).join(', ');
+        const data = Array.from(popupNode.querySelectorAll('input[type="text"]')).map(textNode => textNode.value);
         popup.close();
         popup.isVisible = false;
         popup.marker.setAnimation(null);
@@ -368,12 +377,9 @@
         if (customMarkerNode) {
           customMarkerNode.classList.add('disabled');
         }
-        const marker = new google.maps.Marker({
-          map: map,
-          draggable: false,
-          animation: google.maps.Animation.DROP,
-          position: evt.latLng
-        });
+        const marker = getMarker(evt.latLng.lat(), evt.latLng.lng(), greenMarker);
+        marker.setAnimation(google.maps.Animation.DROP);
+        marker.setDraggable(true);
         const cusEventPopup = '<table class="custom-event-popup"><tr><td>Who</td><td><input type="text"/></td></tr><tr><td><label>Where</label></td><td><input type="text"/></td></tr><tr><td><label>When</label></td><td><input type="text"/></td></tr><tr></tr><tr><td colspan="2"><button type="button">Save</button></td></tr></table>'
         popup.setContent(cusEventPopup);
         popup.open(map, marker);
