@@ -10,7 +10,6 @@
   <link rel="stylesheet" href="/vendor/normalize-4.1.1.css" type="text/css" />
   <link rel="stylesheet" href="/vendor/border-box.css" type="text/css" />
   <link rel="stylesheet" href="/styles/layout.css" type="text/css" />
-  <link rel="stylesheet" href="/styles/artist.css" type="text/css" />
   <link rel="stylesheet" href="/styles/main_component.css" type="text/css" />
   <link rel="stylesheet" href="/styles/list_area.css" type="text/css" />
   <link rel="stylesheet" href="/styles/nav.css" type="text/css" />
@@ -20,83 +19,27 @@
     integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 
   <script type="text/javascript" src="/vendor/jquery-3.0.0.js"></script>
-  <script type="text/javascript" src="/scripts/app.js"></script>
-  <script type="text/javascript" src="/scripts/spotify.js"></script>
-  <script src="https://maps.googleapis.com/maps/api/js?libraries=places&key=<%=googleApiKey%>&callback=initMap" async
-    defer></script>
+  <script src="https://maps.googleapis.com/maps/api/js?libraries=places&key=<%=googleApiKey%>&callback=initMap" defer></script>
   <script type="text/javascript" src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
     integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
     crossorigin="anonymous"></script>
-
-  <style type="text/css">
-    *, *:after, *:before {
-      box-sizing: border-box;
-    }
-
-    html,
-    body {
-      height: 100%;
-      margin: 0;
-      padding: 0;
-    }
-
-    /* #map {} */
-
-    .custom-marker-container {
-      /* background-color: #ffffff; */
-      background: transparent;
-      border: 1px dotted #000000;
-      width: 40px;
-      height: 40px;
-      margin: 0;
-      padding: 0;
-      margin-right: 10px;
-      cursor: url(https://maps.gstatic.com/mapfiles/openhand_8_8.cur), default;
-    }
-
-    .custom-marker-container.disabled {
-      visibility: hidden;
-    }
-
-    .custom-marker-btn {
-      display: inline-block;
-      width: 100%;
-      height: 100%;
-      padding: 3px;
-    }
-  </style>
+  <script src="https://kit.fontawesome.com/25262f9bec.js"></script>
 </head>
 
 <body>
-
-
-  <div id="mainArea">
-    <% include partials/__nav %>
-
-    <div id="listArea" class='scroll'>
-      <ul>
-      </ul>
-      <h2>
-
-      </h2>
-    </div>
-
-
-
-    <div id="mapArea">
-      <div id="artistArea" class='scroll'>
-        <div id="artists"></div>
+  <% include partials/__nav %>
+  <div class="content">
+    <ul class='scroll nav-list'></ul>
+    <div class="main">
+      <div class='popup'>
+        <div class="artist"></div>
+        <div class="close-btn far fa-window-close"></div>
       </div>
-
-      <div id="map">
-
-      </div>
+      <div id="map" class="gmap-container"></div>
     </div>
   </div>
 
-    </main>
-
-    <%
+  <%
     let collection = concerts.map(concert => {
       let artists = concert.performers.map(performer => performer.displayName.replace(/[^a-zA-Z ]/g, '')).join(',');
       return [
@@ -107,281 +50,400 @@
 
     %>
 
-    <script type="text/javascript">
+  <script type="text/javascript">
 
-    // document.addEventListener("click", (evt) => {
-    //     const artistArea = document.getElementById("artistArea");
-    //     let targetElement = evt.target; // clicked element
+    // We need to retrieve the collection of artists, as well as the id of the event/concert they belong to
+    let collection = "<%= collection %>".split('||').map(item => {
+      let id = item.split(',')[0];
+      let artists = item.split(',').slice(1)
+      return {
+        id,
+        artists
+      }
+    })
 
-    //     if(artistArea.style.display == 'flex') {
-    //       if (targetElement !== artistArea) {
-    //         artistArea.style.display = 'none'
-    //         console.log("we're inside")
-    //       }
-    //     }
-    // });
+    function getHashParams() {
+      var hashParams = {};
+      var e, r = /([^&;=]+)=?([^&;]*)/g,
+        q = window.location.hash.substring(1);
+      while (e = r.exec(q)) {
+        hashParams[e[1]] = decodeURIComponent(e[2]);
+      }
+      return hashParams;
+    }
 
-      const getMarkerListNode = (concert) => {
-        return `<li id="${concert.songkick_event_id}" onclick="showArtist(this.id)">
-          <div class='concertListing'>
-            <img src='${concert.image640}'>
-            <p class='listDetails'>
-              <span class='listTitle'>${concert.concertName.split('(')[0]}</span>
-              <span class='listDateArea'>
-                <span class='listDate'>${concert.start.date}</span>
-                <span class='listTime'>${concert.start.time}</span>
-              </span>
+    let hashParams = {};
+
+    if (window.location.hash) {
+      hashParams = getHashParams();
+    }
+
+    // Spotify
+
+    const getArtistsInfo = async (artists, access_token) => {
+      let artistsCollection = {};
+
+      for (let a of artists) {
+
+        let venueArtists = [];
+
+        for (let artist of a.artists) {
+          let aObj = {};
+
+          // Search for artist in spotify database
+          let artistInfo = await $.ajax({
+            url: "https://api.spotify.com/v1/search?q=" + artist + "&type=artist",
+            type: "GET",
+            headers: {
+              "Authorization": "Bearer " + access_token
+            }
+          })
+
+          // Create an object to hold artist information
+          if (artistInfo.artists.items.length === 0) {
+            continue;
+          }
+          let a = artistInfo.artists.items[0];
+          aObj.name = a.name || 0;
+          aObj.href = a.href || 0;
+          aObj.id = a.id || 0;
+          if (a.images[0]) {
+            aObj.image640 = a.images[0].url;
+          }
+
+          let albumUrl = `https://api.spotify.com/v1/artists/${a.id}/albums?market=ES&limit=2`
+          let albumInfo = await $.ajax({
+            url: albumUrl,
+            type: "GET",
+            headers: {
+              "Authorization": "Bearer " + access_token
+            }
+          })
+
+          aObj.iframeUrl = `https://open.spotify.com/embed/album/${albumInfo.items[0].id}`
+
+          venueArtists.push(aObj);
+        }
+        artistsCollection[a.id] = venueArtists;
+      }
+
+      return artistsCollection;
+    }
+
+    const artistDisplay = (artist, containerNode) => {
+      containerNode.innerHTML =
+      `<img src="${artist.image640}"/>
+      <div class="detail">
+        <h1 class='name'>${artist.name}</h1>
+        <iframe class="player" src="${artist.iframeUrl}" width="300" height="600" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+      </div>`;
+    };
+
+    let artists = {}
+
+    const initialize = async () => {
+        try {
+          artists = await getArtistsInfo(collection, hashParams.access_token);
+        } catch(err) {
+          console.log("Error from getArtistInfo call: ", err);
+        }
+      };
+    initialize();
+
+  </script>
+
+  <script>
+
+    const showArtist = (id) => {
+      if (!artists[id]) return;
+      const popupNode = document.querySelector('.content .main .popup');
+      popupNode.classList.add('enabled');
+      artistDisplay(artists[id][0], popupNode.querySelector('.artist'));
+    }
+
+    const getListNode = (concert) => {
+      const wrapper = document.createElement('div');
+      wrapper.innerHTML =
+        `<li data-event-id="${concert.songkick_event_id}" onclick="showArtist(this.dataset.eventId)">
+            <img src='${concert.image640 ? concert.image640 : '#'}'>
+            <p class='detail'>
+              <span class='title'>${concert.concertName.split('(')[0]}</span>
+              <time>
+                <span class='date'>${concert.start.date}</span>
+                <span class='time'>${concert.start.time}</span>
+              </time>
             </p>
-          </div>
+            <button class="locate-btn fas fa-map-marker-alt"></button>
         </li>`;
-      };
+      return wrapper.childNodes[0];
+    };
 
-      const renderMarkerList = (markerRes) => {
-        const markers = [];
-        for (let marker of markerRes) {
-          const node = getMarkerListNode(marker);
-          markers.push(node);
-          if (marker.lat && marker.lng) addMarker(marker.lat, marker.lng, marker, redMarker);
-        }
-        const listNode = document.querySelector('#listArea ul');
-        listNode.childNodes.forEach(n => listNode.removeChild(n));
-        $(listNode).append(...markers);
-      };
+    const registerListNode = (...listNodes) => {
+      const containerNode = document.querySelector('.nav-list');
+      for (let listNode of listNodes) {
+        listNode.addEventListener('mouseenter', onListMouseEnter);
+        listNode.addEventListener('mouseleave', onListMouseOut);
+        listNode.querySelector('.locate-btn').addEventListener('click', onListLocate);
+      }
+      containerNode.append(...listNodes);
+    };
 
-      // We need to retrieve the collection of artists, as well as the id of the event/concert they belong to
-      let collection = "<%= collection %>".split('||').map(item => {
-        let id = item.split(',')[0];
-        let artists = item.split(',').slice(1)
-        return {
-          id,
-          artists
+    const renderMarkerList = (eventsRes) => {
+      const listNodes = [];
+      const containerNode = document.querySelector('.nav-list');
+      containerNode.childNodes.forEach(n => containerNode.removeChild(n));
+      for (let eventRes of eventsRes) {
+        const listNode = getListNode(eventRes);
+        listNodes.push(listNode);
+        if (eventRes.lat && eventRes.lng) {
+          const marker = getMarker(eventRes.lat, eventRes.lng, redMarker);
+          marker.listNode = listNode;
+          listNode.marker = marker;
+          registerMarker(marker, eventRes);
         }
-      })
+      }
+      registerListNode(...listNodes);
+    };
 
-      function getHashParams() {
-        var hashParams = {};
-        var e, r = /([^&;=]+)=?([^&;]*)/g,
-          q = window.location.hash.substring(1);
-        while (e = r.exec(q)) {
-          hashParams[e[1]] = decodeURIComponent(e[2]);
-        }
-        return hashParams;
+    const onDataLoad = () => {
+      renderMarkerList(<%- JSON.stringify(concerts) %>);
+    };
+
+    $(() => {
+      document.querySelector('.popup .close-btn').addEventListener('click', function(evt) {
+        this.closest('.popup').classList.remove('enabled');
+      });
+    });
+  </script>
+
+
+  <script>
+    const redMarker = 'https://maps.google.com/mapfiles/ms/icons/red-dot.png';
+    const blueMarker = 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png';
+    const greenMarker = 'https://maps.google.com/mapfiles/ms/icons/green-dot.png';
+    const markers = [];
+    const lines = [];
+    let popup;
+    let map;
+    let customMarkerNode;
+    let selectedMarker;
+
+    const onListMouseEnter = function(evt) {
+      selectMarker(this.marker);
+    };
+
+    const onListMouseOut = function(evt) {
+      selectMarker(null);
+    }
+
+    const onListLocate = function(evt) {
+      evt.stopPropagation();
+      const listNode = this.closest('li');
+      map.setCenter(listNode.marker.position);
+      selectMarker(listNode.marker);
+    }
+
+    const selectMarker = (marker) => {
+      if (marker === selectedMarker) return;
+      if (selectedMarker) {
+        selectedMarker.listNode.classList.remove('selected');
+        selectedMarker.setAnimation(null);
+      }
+      selectedMarker = marker;
+      if (marker && marker.listNode) {
+        marker.listNode.classList.add('selected');
+        marker.setAnimation(google.maps.Animation.BOUNCE);
+      }
+    };
+
+    const onMarkerClick = (evt, marker, data) => {
+      showArtist(data.songkick_event_id);
+    };
+
+    const onMarkerMouseOver = (evt, marker, data) => {
+      if (!selectedMarker) {
+        selectMarker(marker);
+      }
+    };
+
+    const onMarkerMouseOut = (evt, marker, data) => {
+      if (selectedMarker) {
+        selectMarker(null);
+      }
+    };
+
+    const registerMarker = (marker, data) => {
+      marker.addListener('click', evt => onMarkerClick(evt, marker, data));
+      marker.addListener('mouseover', evt => onMarkerMouseOver(evt, marker, data));
+      marker.addListener('mouseout', evt => onMarkerMouseOut(evt, marker, data))
+      if (!marker.listNode) {
+        marker.listNode = getListNode({songkick_event_id: 0, image640: null, concertName: data[0], start: {date: data[1], time: data[2]}});
+        marker.listNode.marker = marker;
+        registerListNode(marker.listNode);
+      }
+      markers.push(marker);
+    };
+
+    const getMarker = (lat, lng, iconPath) => {
+      iconPath = iconPath ? iconPath: redMarker;
+      return new google.maps.Marker({ position: { lat, lng }, map, icon: { url: iconPath } });
+    };
+
+    const addStop = (lat, lng, data, iconPath) => {
+      const marker = getMarker(lat, lng, iconPath);
+      registerMarker(marker, data);
+      if (markers.length >= 2) {
+        const lineSymbol = { path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW };
+        const path = [markers[markers.length - 2].position, markers[markers.length - 1].position];
+        const line = new google.maps.Polyline({
+          path,
+          map,
+          icons: [{ icon: lineSymbol }],
+        });
+      }
+      return marker;
+    }
+
+    async function getVenueDetails(query) {
+      service = new google.maps.places.PlacesService(map);
+
+      const placesRes = await new Promise((resolve, reject) => {
+        service.findPlaceFromQuery({ query, fields: ['place_id'] }, function(results, status) {
+          if (status === google.maps.places.PlacesServiceStatus.OK) {
+            resolve(results);
+          } else {
+            reject(status);
+          }
+        });
+      });
+
+      if (placesRes) {
+
       }
 
-      let hashParams = {};
+      const detailRes = await new Promise((resolve, reject) => {
+        service.getDetails({ placeId: placesRes[0]['place_id'] }, function(place, status) {
+          if (status === google.maps.places.PlacesServiceStatus.OK) {
+            resolve(place);
+          } else {
+            reject(status);
+          }
+        });
+      });
 
-      if (window.location.hash) {
-        hashParams = getHashParams();
-      }
+      return
+    };
 
-      let artists = {}
+    async function initMap() {
+      // const { coords } = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res));
+      map = new google.maps.Map(document.querySelector('.gmap-container'), {
+        // center: { lat: coords.latitude, lng: coords.longitude },
+        center: { lat: 43.661539, lng: -79.411079 },
+        zoom: 14
+      });
 
-      getArtistsInfo(collection, hashParams.access_token)
-        .then(res => {
-          artists = res;
-          // console.log("from main_component, artists: ", artists)
-        })
-        .catch(e => console.error("error from getArtistInfo call: ", e))
+      // Popup
+      popup = new google.maps.InfoWindow();
 
-      let showArtist = (id) => {
-        // console.log("showArtist called from id ==> ", id)
-        $("#artistArea").css('display', 'flex');
-        // console.log("displaying artists[id][0] info ===> ", artists[id][0])
-        artistDisplay(artists[id][0]);
-      }
-
-    </script>
-
-    <script>
-      const onDataLoad = () => {
-        renderMarkerList(<%-JSON.stringify(concerts)%>);
-      };
-    </script>
-
-
-    <script>
-      const redMarker = 'https://maps.google.com/mapfiles/ms/icons/red-dot.png';
-      const blueMarker = 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png';
-      const greenMarker = 'https://maps.google.com/mapfiles/ms/icons/green-dot.png';
-      const markers = [];
-      const lines = [];
-      let popup;
-      let map;
-      let customMarkerNode;
-
-      const onMarkerClick = (evt, marker, data) => {
-        console.log("Popup", marker.position.lat(), marker.position.lng(), data);
-        showArtist(data.songkick_event_id);
-      };
-
-      const registerMarker = (marker, data) => {
-        marker.addListener('click', evt => onMarkerClick(evt, marker, data));
-        markers.push(marker);
-      };
-
-      const addMarker = (lat, lng, data, iconPath) => {
-        const marker = new google.maps.Marker({ position: { lat, lng }, map, icon: { url: iconPath } });
-        registerMarker(marker, data);
-        return marker;
-      };
-
-      const addStop = (lat, lng, data, iconPath) => {
-        const marker = addMarker(lat, lng, data, iconPath);
-        if (markers.length >= 2) {
-          const lineSymbol = { path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW };
-          const path = [markers[markers.length - 2].position, markers[markers.length - 1].position];
-          const line = new google.maps.Polyline({
-            path,
-            map,
-            icons: [{ icon: lineSymbol }],
-          });
+      const onPopupDiscard = function(evt) {
+        if (customMarkerNode) {
+          customMarkerNode.classList.remove('disabled');
         }
-        return marker;
-      }
-
-      async function getVenueDetails(query) {
-        service = new google.maps.places.PlacesService(map);
-
-        const placesRes = await new Promise((resolve, reject) => {
-          service.findPlaceFromQuery({ query, fields: ['place_id'] }, function(results, status) {
-            if (status === google.maps.places.PlacesServiceStatus.OK) {
-              resolve(results);
-            } else {
-              reject(status);
-            }
-          });
-        });
-
-        if (placesRes) {
-
-        }
-
-        const detailRes = await new Promise((resolve, reject) => {
-          service.getDetails({ placeId: placesRes[0]['place_id'] }, function(place, status) {
-            if (status === google.maps.places.PlacesServiceStatus.OK) {
-              resolve(place);
-            } else {
-              reject(status);
-            }
-          });
-        });
-
-        return
+        popup.isVisible = false;
+        popup.marker.setMap(null);
+        delete popup.marker;
       };
 
-      async function initMap() {
-        // const { coords } = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res));
-        map = new google.maps.Map(document.getElementById('map'), {
-          // center: { lat: coords.latitude, lng: coords.longitude },
-          center: { lat: 43.761539, lng: -79.411079 },
-          zoom: 10
-        });
+      const onPopupSave = function(evt) {
+        if (customMarkerNode) {
+          customMarkerNode.classList.remove('disabled');
+        }
+        const popupNode = document.querySelector('.custom-event-popup');
+        const data = Array.from(popupNode.querySelectorAll('input[type="text"]')).map(textNode => textNode.value);
+        popup.close();
+        popup.isVisible = false;
+        popup.marker.setAnimation(null);
+        registerMarker(popup.marker, data);
+        delete popup.marker;
 
-        // Popup
-        popup = new google.maps.InfoWindow();
+        // console.log("Create Custom", data);
+      };
 
-        const onPopupDiscard = function(evt) {
-          if (customMarkerNode) {
-            customMarkerNode.classList.remove('disabled');
-          }
-          popup.isVisible = false;
-          popup.marker.setMap(null);
-          delete popup.marker;
-        };
+      const onPopupLoad = function(evt) {
+        document.querySelector('.gm-ui-hover-effect').addEventListener('click', onPopupDiscard);
+        const popupNode = document.querySelector('.custom-event-popup');
+        const submitBtnNode = popupNode.querySelector('button');
+        submitBtnNode.addEventListener('click', onPopupSave);
+      };
 
-        const onPopupSave = function(evt) {
-          if (customMarkerNode) {
-            customMarkerNode.classList.remove('disabled');
-          }
-          const popupNode = document.querySelector('.custom-event-popup');
-          const data = Array.from(popupNode.querySelectorAll('input[type="text"]')).map(textNode => textNode.value).join(', ');
-          popup.close();
-          popup.isVisible = false;
-          popup.marker.setAnimation(null);
-          registerMarker(popup.marker, data);
-          delete popup.marker;
-
-          console.log("Create Custom", data);
-        };
-
-        const onPopupLoad = function(evt) {
-          document.querySelector('.gm-ui-hover-effect').addEventListener('click', onPopupDiscard);
-          const popupNode = document.querySelector('.custom-event-popup');
-          const submitBtnNode = popupNode.querySelector('button');
-          submitBtnNode.addEventListener('click', onPopupSave);
-        };
-
-        const onPopupShow = function(evt) {
-          if (customMarkerNode) {
-            customMarkerNode.classList.add('disabled');
-          }
-          const marker = new google.maps.Marker({
-            map: map,
-            draggable: false,
-            animation: google.maps.Animation.DROP,
-            position: evt.latLng
-          });
-          const cusEventPopup = '<table class="custom-event-popup"><tr><td>Who</td><td><input type="text"/></td></tr><tr><td><label>Where</label></td><td><input type="text"/></td></tr><tr><td><label>When</label></td><td><input type="text"/></td></tr><tr></tr><tr><td colspan="2"><button type="button">Save</button></td></tr></table>'
-          popup.setContent(cusEventPopup);
-          popup.open(map, marker);
-          popup.marker = marker;
-          popup.isVisible = true;
-          popup.addListener('domready', onPopupLoad);
-        };
+      const onPopupShow = function(evt) {
+        if (customMarkerNode) {
+          customMarkerNode.classList.add('disabled');
+        }
+        const marker = getMarker(evt.latLng.lat(), evt.latLng.lng(), greenMarker);
+        marker.setAnimation(google.maps.Animation.DROP);
+        marker.setDraggable(true);
+        const cusEventPopup = '<table class="custom-event-popup"><tr><td>Who</td><td><input type="text"/></td></tr><tr><td><label>Where</label></td><td><input type="text"/></td></tr><tr><td><label>When</label></td><td><input type="text"/></td></tr><tr></tr><tr><td colspan="2"><button type="button">Save</button></td></tr></table>'
+        popup.setContent(cusEventPopup);
+        popup.open(map, marker);
+        popup.marker = marker;
+        popup.isVisible = true;
+        popup.addListener('domready', onPopupLoad);
+      };
 
 
-        // Add custom drop pin control
-        let dropMarkerDate = null;
+      // Add custom drop pin control
+      let dropMarkerDate = null;
 
-        customMarkerNode = document.createElement('div');
-        customMarkerNode.classList.add('custom-marker-container');
-        const customMarkerBtnNode = document.createElement('img');
-        customMarkerBtnNode.classList.add('custom-marker-btn');
-        customMarkerBtnNode.setAttribute('draggable', 'true');
-        customMarkerBtnNode.setAttribute('src', 'https://maps.google.com/mapfiles/ms/icons/red-dot.png');
-        customMarkerNode.append(customMarkerBtnNode);
+      customMarkerNode = document.createElement('div');
+      customMarkerNode.classList.add('custom-marker-container');
+      const customMarkerBtnNode = document.createElement('img');
+      customMarkerBtnNode.classList.add('custom-marker-btn');
+      customMarkerBtnNode.setAttribute('draggable', 'true');
+      customMarkerBtnNode.setAttribute('src', 'https://maps.google.com/mapfiles/ms/icons/red-dot.png');
+      customMarkerNode.append(customMarkerBtnNode);
 
-        const mapNode = document.querySelector('#map');
+      const mapNode = document.querySelector('#map');
 
-        map.addListener('mouseover', (evt) => {
-          const now = +new Date;
-          if (now - dropMarkerDate < 3000) {
-            dropMarkerDate = null;
-            onPopupShow.call(this, evt);
-          }
-        });
-        mapNode.addEventListener('dragover', function(evt) {
-          evt.preventDefault();
-        });
-        customMarkerBtnNode.addEventListener('dragend', function(evt) {
-          dropMarkerDate = +new Date;
-        });
-        map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(customMarkerNode);
+      map.addListener('mouseover', (evt) => {
+        const now = +new Date;
+        if (now - dropMarkerDate < 3000) {
+          dropMarkerDate = null;
+          onPopupShow.call(this, evt);
+        }
+      });
+      mapNode.addEventListener('dragover', function(evt) {
+        evt.preventDefault();
+      });
+      customMarkerBtnNode.addEventListener('dragend', function(evt) {
+        dropMarkerDate = +new Date;
+      });
+      map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(customMarkerNode);
 
-        // Add longpress handlers
-        let mPressDate = null;
+      // Add longpress handlers
+      let mPressDate = null;
 
-        const onLongPress = function(evt) {
-          const now = +new Date;
-          if (!popup.isVisible && mPressDate && now - mPressDate > 300) {
-            mPressDate = null;
-            onPopupShow.call(this, evt);
-          }
-        };
-
-        map.addListener('mousedown', function() {
-          mPressDate = +new Date;
-        });
-        map.addListener('drag', function() {
+      const onLongPress = function(evt) {
+        const now = +new Date;
+        if (!popup.isVisible && mPressDate && now - mPressDate > 300) {
           mPressDate = null;
-        })
-        map.addListener('mouseover', onLongPress);
-        map.addListener('mouseup', onLongPress);
+          onPopupShow.call(this, evt);
+        }
+      };
 
-        onDataLoad();
-      }
+      map.addListener('mousedown', function() {
+        mPressDate = +new Date;
+      });
+      map.addListener('drag', function() {
+        mPressDate = null;
+      })
+      map.addListener('mouseover', onLongPress);
+      map.addListener('mouseup', onLongPress);
 
-    </script>
+      onDataLoad();
+    }
+
+  </script>
 </body>
 
 </html>
