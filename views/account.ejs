@@ -7,7 +7,13 @@
     <link rel="stylesheet" href="/styles/variables.css" type="text/css" />
     <link rel="stylesheet" href="/styles/nav.css" type="text/css" />
     <link href="https://fonts.googleapis.com/css?family=Raleway&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 
+    <script type="text/javascript" src="/vendor/jquery-3.0.0.js"></script>
+    <script type="text/javascript" src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+    integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+    crossorigin="anonymous"></script>
     <script src="https://maps.googleapis.com/maps/api/js?libraries=places&key=<%=googleApiKey%>&callback=initMap" async
       defer></script>
 
@@ -52,13 +58,9 @@
   </head>
 
   <body>
-    <div class="account-area">
-      <% include partials/__nav %>
+    <% include partials/__nav %>
 
-      <div class="user-map">
-        <div id="map"></div>
-        <% include map %>
-      </div>
+    <div class="account-area">
 
       <div class="user-info">
         <img src="../images/profile_1.knee.onThailand.jpg">
@@ -70,6 +72,12 @@
           <h3>S</h3>
         </div>
       </div>
+
+      <div class="user-map">
+        <div id="map"></div>
+        <% include map %>
+      </div>
+
     </div>
 
   </body>

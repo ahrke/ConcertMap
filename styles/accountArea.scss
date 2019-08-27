@@ -1,31 +1,33 @@
 @import 'variables';
 
-.account-area {
+body {
   position: fixed;
   width: 100vw;
   height: 100vh;
   top: 0;
   left: 0;
+  display: flex;
+  flex-direction: column;
+}
 
-  display: grid;
-  grid-template-columns: 1fr 3fr;
-  grid-template-rows: 1fr 12fr;
+.account-area {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
 }
 
 .user-map {
-  grid-column: 2/3;
-  grid-row: 2/3;
+  flex-grow: 2;
   background-color: darkcyan;
   height: 100%;
+  width: 100%;
 }
 
 .user-info {
-  width: 100%;
-  height: 100%;
+  max-width: 25%;
+  min-height: 0;
   background-color: $color-4;
   color: $font-bright;
-  grid-column: 1/2;
-  grid-row: 2/3;
   display: grid;
   grid-template-columns: 1fr;
   grid-template-rows: 1fr 2fr 1fr;
@@ -75,19 +77,22 @@
 
 @media only screen and (max-width: 789px) {
   .account-area {
-    display: grid;
-    grid-template-columns: 1fr;
-    grid-template-rows: 1fr 9fr 3fr;
+    flex-direction: column;
+    min-height: 0;
+    height: 100%;
+    width: 100%;
   }
 
   .user-map {
-    grid-row: 2/3;
-    grid-column: 1/2;
-    height: 100%;
+    flex: 4;
+    order: 1;
   }
 
   .user-info {
-    grid-row: 3/4;
+    flex:2;
+    order: 2;
+    max-width: 100%;
+
     display: grid;
     grid-template-columns: 1fr 3fr;
     grid-template-rows: 1fr;
