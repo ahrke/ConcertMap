@@ -12,19 +12,6 @@
   // flex-direction: row;
 }
 
-#nav {
-  background-color: azure;
-  grid-area: nav;
-  ul {
-    list-style-type: none;
-
-    li {
-      float: right;
-      margin: 0 10px;
-    }
-  }
-}
-
 #listArea {
   padding: 0;
   grid-area: list;

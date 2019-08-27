@@ -4,6 +4,8 @@
     <title></title>
 
     <link rel="stylesheet" href="/styles/accountArea.css" type="text/css" />
+    <link rel="stylesheet" href="/styles/variables.css" type="text/css" />
+    <link rel="stylesheet" href="/styles/nav.css" type="text/css" />
     <link href="https://fonts.googleapis.com/css?family=Raleway&display=swap" rel="stylesheet">
 
     <script src="https://maps.googleapis.com/maps/api/js?libraries=places&key=<%=googleApiKey%>&callback=initMap" async
@@ -59,7 +61,14 @@
       </div>
 
       <div class="user-info">
-
+        <img src="../images/profile_1.knee.onThailand.jpg">
+        <div class="user-bio">
+          <span><%= user.name %></span>
+          <p><%= user.bio %></p>
+        </div>
+        <div class='userOptions'>
+          <h3>S</h3>
+        </div>
       </div>
     </div>
 
