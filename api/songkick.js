@@ -1,94 +1,70 @@
 const request = require('request-promise-native');
 const { getPreciseDistance } = require('geolib');
-const SONGKICK = process.env.SONGKICK_API_KEY;
+const SONGKICK_API_KEY = process.env.SONGKICK_API_KEY;
 
 // We need a way to calculate the distance between two coordinates to determine distance between venue and user
-const distance = (loc1, loc2) => {
-  return getPreciseDistance(loc1, loc2);
-}
+const distance = (loc1, loc2) => getPreciseDistance(loc1, loc2);
 
 // We call songkick to request the metroId of a certain city
-let getMetroId = (loc) => {
-  return request(`https://api.songkick.com/api/3.0/search/locations.json?location=geo:${loc.latitude},${loc.longitude}&apikey=${SONGKICK}`)
-}
+const getMetroIdsRequest = loc => request(`https://api.songkick.com/api/3.0/search/locations.json?location=geo:${loc.lat},${loc.lng}&apikey=${SONGKICK_API_KEY}`);
 
 // Using songkick's metroID, we can then find events happening in the city
-let getMetro = (metroId) => {
-  return request(`https://api.songkick.com/api/3.0/metro_areas/${metroId}/calendar.json?apikey=${SONGKICK}`);
-}
+const getEventsRequest = metroId => request(`https://api.songkick.com/api/3.0/metro_areas/${metroId}/calendar.json?apikey=${SONGKICK_API_KEY}`);
 
 // This will help us get collection of events/concerts happening in the chosen city
 // returns an array of event objects that meet the dates we're interested in
-let getConcerts = async (lat, lng, date) => {
-  let coordinates = {
-    latitude: lat,
-    longitude: lng
-  }
-
+const getVerifiedEvents = async(lat, lng) => {
   // Perform search for events occuring near given coordinates
-  let metroAreasSearch = await getMetroId(coordinates);
+  const metroIdsRes = await getMetroIdsRequest({ lat, lng });
 
   // We'll use an array to represent metroIds already in the metroAreasIds array
-  let mAreaList = [];
+  const metroAreaList = [];
 
-  // We need a collection of MetroAreaIds. Using new Set() to create a unique array
-  let metroAreasIds = JSON.parse(metroAreasSearch).resultsPage.results.location.map(loc => {
-    let locCoordinates = {
-      latitude: loc.metroArea.lat || 0,
-      longitude: loc.metroArea.lng || 0
-    }
+  // We need a collection of MetroAreaIds.
+  const metroAreasIds = JSON.parse(metroIdsRes).resultsPage.results.location
+    .map(loc => {
+      const clientLoc = { latitude: lat, longitude: lng };
+      const metroAreaLoc = { latitude: loc.metroArea.lat || 0, longitude: loc.metroArea.lng || 0 };
+      const metroAreaId = loc.metroArea.id;
+      const dist = distance(clientLoc, metroAreaLoc);
+      return { metroAreaId, dist };
+    })
+    .sort((a, b) => a.dist - b.dist)
+    .filter((area) => {
+      if (metroAreaList.includes(area.metroAreaId)) {
+        return false;
+      } else {
+        metroAreaList.push(area.metroAreaId);
+        return true;
+      }
+    })
+    .splice(0, 3)
+    .map(area => area.metroAreaId);
 
-    let d = distance(coordinates, locCoordinates)
-
-    return {
-      loc,
-      d
-    };
-  })
-  .sort((a,b) => a.d - b.d)
-  .filter(loc_inner => {
-    if (mAreaList.includes(loc_inner.loc.metroArea.id)) {
-      return false;
-    } else {
-      mAreaList.push(loc_inner.loc.metroArea.id)
-
-      return true;
-    }
-  })
-  .splice(0,3)
-  .map(ma => {
-    return ma.loc.metroArea.id
-  });
-
-  let listOfEvents = [];
+  let events = [];
 
   for (let metroId of metroAreasIds) {
-    let metroResults = await getMetro(metroId);
-    let events = JSON.parse(metroResults).resultsPage.results.event;
-
-    for (let event of events) {
-      if(event.start.date == date) {
-
-        let toAdd = {
-          songkick_event_id: event.id,
-          songkick_uri: event.uri,
-          concertName: event.displayName,
-          start: event.start,
-          performers: event.performance,
-          venue: event.venue.displayName,
-          lat: event.venue.lat || event.location.lat,
-          lng: event.venue.lng || event.location.lng
-        }
-        listOfEvents.push(toAdd)
-      }
+    let eventsRes = JSON.parse(await getEventsRequest(metroId)).resultsPage.results.event;
+    for (let eventRes of eventsRes) {
+      const artists = eventRes.performance.map(perf => {
+        return { 'name': perf.artist.displayName, 'songkick_uri': perf.artist.uri };
+      });
+      const event = {
+        'concert_id': eventRes.id,
+        'songkick_uri': eventRes.uri,
+        'name': eventRes.displayName,
+        'start_date': eventRes.start,
+        'artists': artists,
+        'venue': eventRes.venue.displayName,
+        'latlng': [eventRes.venue.lat || eventRes.location.lat, eventRes.venue.lng || eventRes.location.lng]
+      };
+      events.push(event);
     }
   }
 
-  return listOfEvents
-}
+  return events;
+};
 
 // getConcerts(43.645144, -79.403008,'2019-08-25').then(res => console.log(res))
 
-module.exports = {
-  getConcerts
-}
+module.exports = { getVerifiedEvents };
