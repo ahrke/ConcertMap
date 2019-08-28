@@ -14,6 +14,8 @@ const http = require('http');
 const https = require('https');
 const fs = require('fs');
 
+const database = require('./db/database');
+
 // PG database client/connection setup
 const { Pool } = require('pg');
 const dbParams = require('./lib/db.js');
@@ -41,12 +43,12 @@ const usersRoutes = require("./routes/users");
 const widgetsRoutes = require("./routes/widgets");
 const spotifyRoutes = require('./routes/spotify');
 const songkickRoutes = require('./routes/songkick');
-const accountRoutes = require('./routes/accounts');
+const userRoutes = require('./routes/user');
 
 // Mount all resource routes
 // Note: Feel free to replace the example routes below with your own
 app.use("/api/songkick", songkickRoutes());
-app.use("/accounts", accountRoutes());
+app.use("/users", userRoutes(database));
 app.use("/api/spotify", spotifyRoutes());
 // Note: mount other resources here, using the same pattern above
 

@@ -1,5 +1,5 @@
 // require all query modules
-const { getUserWithEmail, getProfile, getUserCustomEvents, getUserEventTags, getUserCreatedTrips, getUserFavouritedTrips } = require('./queries/queries_user');
+const { userLogin, getUserWithEmail, getProfile, getUserCustomEvents, getUserEventTags, getUserCreatedTrips, getUserFavouritedTrips } = require('./queries/queries_user');
 const { getAllTrips, getTripData } = require('./queries/queries_trips');
 const { getCustomEventInfo, getCustomEventArtists } = require('./queries/queries_custom_events');
 
@@ -10,6 +10,7 @@ const { addUser, addProfile, updateProfileBio, updateProfileAvatarUri } = requir
 const { addCustomEvent } = require('./inserts_updates/insert_custom_events');
 
 module.exports = {
+  userLogin,
   getUserWithEmail,
   getProfile,
   getUserCustomEvents,

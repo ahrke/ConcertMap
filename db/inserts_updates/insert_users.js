@@ -69,7 +69,7 @@ const updateProfileBio =  function(user) {
         WHERE user_id = $1
       RETURNING *;
     `,
-    values: [user.id, user.bio]
+    values: [user.user_id, user.bio]
   };
 
   return new Promise((resolve, reject) => {

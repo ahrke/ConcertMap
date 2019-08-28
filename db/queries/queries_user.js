@@ -1,5 +1,29 @@
 const db = require('../index');
 
+
+/**
+ * Get a single user from the database given their email.
+ * @param {email: string, password: string} email The email of the user.
+ * @return {Promise<{}>} A promise to the user.
+ */
+const userLogin = function(email, password) {
+  return this.getUserWithEmail(email)
+    .then(res => {
+      return new Promise((resolve, reject) => {
+        if (res.password === password) {
+          resolve(res.id)
+        } else {
+          reject("fail. Fields do not match")
+        }
+      })
+    })
+      .then(user_id => {
+        return this.getProfile(user_id)
+      })
+}
+exports.userLogin = userLogin;
+
+
 /**
  * Get a single user from the database given their email.
  * @param {String} email The email of the user.
@@ -8,7 +32,7 @@ const db = require('../index');
 const getUserWithEmail = function(email) {
   const query = {
     text: `
-      SELECT email, password FROM users
+      SELECT * FROM users
       WHERE email = $1;
     `,
     values: [email]
@@ -33,12 +57,13 @@ exports.getUserWithEmail = getUserWithEmail;
  * @return {Promise<{}>} A promise to the user.
  */
 const getProfile = function(user_id) {
+  console.log("=> query for profiles with id: ",user_id)
   const query = {
     text: `
-      SELECT u.name, p.bio, p.description, p.avatar_uri
+      SELECT u.name, p.bio, p.avatar_uri
         FROM profiles p
         JOIN users u ON u.id = p.user_id
-        WHERE user_id = $1;
+        WHERE p.user_id = $1;
     `,
     values: [user_id]
   };
