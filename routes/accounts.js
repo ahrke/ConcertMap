@@ -1,8 +1,9 @@
 const express = require('express');
+const songkick = require('../api/songkick');
 const router = express.Router();
 
 module.exports = () => {
-  router.get('/:id', (req, res) => {
+  router.get('/:id', async(req, res) => {
     let user = {
       name: 'Dave',
       id: req.params.id,
@@ -16,33 +17,15 @@ module.exports = () => {
         A woozy womb
         Dope so good, a silky smooth perfume
         `
+    };
 
-                // Ride my little pooh bear, wanna take a chance
-                // Wanna sip this smooth air, kick it in the sand
-                // I'd say I told you so but you just gonna cry
-                // You just wanna know those peanut butter vibes
-
-                // Mind my simple song, this ain't gonna work
-                // Mind my wicked words and tipsy topsy smirk
-                // I can't take this place, I can't take this place
-                // I just wanna go where I can get some space
-                // Truth be told
-                // I've been here, I've done this all before
-                // I tell you go gloom
-                // I cut it up and puff it into bloom
-
-                // Ride my little pooh bear, wanna take a chance
-                // Wanna sip this smooth air, kick it in the sand
-                // I'd say I told you so but you just gonna cry
-                // You just wanna know those peanut butter vibes
-
-                // Hold my hand, flow back to the summer time
-                // Tangled in the willows, now comes the tide
-                // How can I believe you, how can I be nice
-                // Tripping around the tree stumps in your summer smile
+    try {
+      const eventsRes = await songkick.getVerifiedEvents(43.645144, -79.503008, '2019-08-30');
+      res.render('account', { user, events: eventsRes, googleApiKey: process.env.GOOGLE_API_KEY });
+    } catch (err) {
+      console.log("error during spotify:", err);
     }
-    res.render('account', { user, googleApiKey: process.env.GOOGLE_API_KEY })
-  })
+  });
 
   return router;
 }
