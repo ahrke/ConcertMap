@@ -5,11 +5,25 @@ const SONGKICK_API_KEY = process.env.SONGKICK_API_KEY;
 // We need a way to calculate the distance between two coordinates to determine distance between venue and user
 const distance = (loc1, loc2) => getPreciseDistance(loc1, loc2);
 
+const cache = {};
+
 // We call songkick to request the metroId of a certain city
-const getMetroIdsRequest = loc => request(`https://api.songkick.com/api/3.0/search/locations.json?location=geo:${loc.lat},${loc.lng}&apikey=${SONGKICK_API_KEY}`);
+const getMetroIdsRequest = async(loc) => {
+  const url = `https://api.songkick.com/api/3.0/search/locations.json?location=geo:${loc.lat},${loc.lng}&apikey=${SONGKICK_API_KEY}`;
+  if (cache.hasOwnProperty(url)) return cache[url];
+  const res = await request(url);
+  cache[url] = res;
+  return res;
+};
 
 // Using songkick's metroID, we can then find events happening in the city
-const getEventsRequest = metroId => request(`https://api.songkick.com/api/3.0/metro_areas/${metroId}/calendar.json?apikey=${SONGKICK_API_KEY}`);
+const getEventsRequest = async(metroId) => {
+  const url = `https://api.songkick.com/api/3.0/metro_areas/${metroId}/calendar.json?apikey=${SONGKICK_API_KEY}`;
+  if (cache.hasOwnProperty(url)) return cache[url];
+  const res = await request(url);
+  cache[url] = res;
+  return res;
+};
 
 // This will help us get collection of events/concerts happening in the chosen city
 // returns an array of event objects that meet the dates we're interested in
