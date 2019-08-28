@@ -1,21 +1,24 @@
 <html>
 
   <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8">
+    <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
     <title></title>
 
     <link rel="stylesheet" href="/styles/accountArea.css" type="text/css" />
     <link rel="stylesheet" href="/styles/variables.css" type="text/css" />
     <link rel="stylesheet" href="/styles/nav.css" type="text/css" />
     <link href="https://fonts.googleapis.com/css?family=Raleway&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
-    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script type="text/javascript" src="https://kit.fontawesome.com/25262f9bec.js" async></script>
     <script type="text/javascript" src="/vendor/jquery-3.0.0.js"></script>
-    <script type="text/javascript" src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
-    integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
-    crossorigin="anonymous"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?libraries=places&key=<%=googleApiKey%>&callback=initMap" async
-      defer></script>
+    <script type="text/javascript" src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous" async></script>
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?libraries=places&key=<%=googleApiKey%>"></script>
+    <script type="module" src="/scripts/trip.js" ></script>
+    <script type="text/javascript">
+      window.embededData = <%- JSON.stringify(events) %>;
+    </script>
 
     <style type="text/css">
       *, *:after, *:before {
@@ -41,7 +44,7 @@
         margin: 0;
         padding: 0;
         margin-right: 10px;
-        cursor: url(https://maps.gstatic.com/mapfiles/openhand_8_8.cur), default;
+        cursor: url('https://maps.gstatic.com/mapfiles/openhand_8_8.cur'), default;
       }
 
       .custom-marker-container.disabled {
@@ -74,12 +77,10 @@
       </div>
 
       <div class="user-map">
-        <div id="map"></div>
-        <% include map %>
+        <div class="gmap-container"></div>
       </div>
 
     </div>
-
   </body>
 
 </html>
