@@ -157,11 +157,11 @@ body {
           }
         }
 
-        .locate-btn {
-          display: none;
-        }
 
-        @media only screen and (max-width: 789px) {
+
+
+
+
           .locate-btn {
             display: inline-block;
             font-size: 32px;
@@ -172,7 +172,7 @@ body {
             margin: 0;
             padding: 0;
           }
-        }
+
       }
     }
   }
