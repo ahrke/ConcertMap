@@ -49,6 +49,7 @@ module.exports = (db) => {
   router.get("/login/:email/:password", (req, res) => {
     db.userLogin(req.params.email, req.params.password)
     .then(data => {
+      req.session.user_id = data.id;
       res.json(data);
     })
     .catch(err => {

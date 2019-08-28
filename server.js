@@ -13,6 +13,7 @@ const morgan = require('morgan');
 const http = require('http');
 const https = require('https');
 const fs = require('fs');
+const cookieSession = require('cookie-session');
 
 const database = require('./db/database');
 
@@ -21,6 +22,11 @@ const { Pool } = require('pg');
 const dbParams = require('./lib/db.js');
 const db = new Pool(dbParams);
 db.connect();
+
+app.use(cookieSession({
+  name: 'session',
+  keys: ['turtle-force=five', 'backgammon']
+}));
 
 // Load the logger first so all (static) HTTP requests are logged to STDOUT
 // 'dev' = Concise output colored by response status for development use.

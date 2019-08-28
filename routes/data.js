@@ -4,10 +4,10 @@ const router = express.Router();
 module.exports = (db) => {
 
   // GET a requested custom created event with artists
-  router.get('/customEvent', (req, res) => {
+  router.get('/customEvents/:cus_event_id', (req, res) => {
     let customEvent = {};
 
-    db.getCustomEventInfo(req.body.cus_event_id)
+    db.getCustomEventInfo(req.params.cus_event_id)
       .then(data => {
         customEvent = {
           name: data.name,
@@ -16,7 +16,7 @@ module.exports = (db) => {
           location: data.location
         }
 
-        getCustomEventArtists(data.id)
+        db.getCustomEventArtists(data.id)
           .then(data => {
             let artists = data.map(artist => artist);
             customEvent["artists"] = artists;
@@ -36,9 +36,9 @@ module.exports = (db) => {
       });
   });
 
-  // GET all trips in database
-  router.get("/trips", (req, res) => {
-    db.getUserCreatedTrips()
+  // GET a trip's data (all stops)
+  router.get("/trips/:trip_id", (req, res) => {
+    db.getTripData(req.params.trip_id)
     .then(data => {
       res.json(data);
     })
@@ -49,9 +49,9 @@ module.exports = (db) => {
     });
   });
 
-  // GET a trip's data (all stops)
-  router.get("/tripData", (req, res) => {
-    db.getTripData(req.session.trip_id)
+  // GET all trips in database
+  router.get("/trips", (req, res) => {
+    db.getAllTrips()
     .then(data => {
       res.json(data);
     })
@@ -61,6 +61,7 @@ module.exports = (db) => {
         .json({ error: err.message });
     });
   });
+
 
 
   return router;

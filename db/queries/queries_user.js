@@ -18,6 +18,7 @@ const userLogin = function(email, password) {
       })
     })
       .then(user_id => {
+        console.log("==--==> into login's branch to profile. user_id:", user_id)
         return this.getProfile(user_id)
       })
 }
@@ -60,7 +61,7 @@ const getProfile = function(user_id) {
   console.log("=> query for profiles with id: ",user_id)
   const query = {
     text: `
-      SELECT u.name, p.bio, p.avatar_uri
+      SELECT u.id, u.name, p.bio, p.avatar_uri
         FROM profiles p
         JOIN users u ON u.id = p.user_id
         WHERE p.user_id = $1;
@@ -89,7 +90,7 @@ exports.getProfile = getProfile;
 const getUserCustomEvents = function(user_id) {
   const query = {
     text: `
-      SELECT name, description, start_date, venue, latlng FROM customEvents
+      SELECT name, description, start_date, venue, latlng FROM custom_events
         WHERE user_id = $1;
     `,
     values: [user_id]
@@ -116,7 +117,7 @@ exports.getUserCustomEvents = getUserCustomEvents;
 const getUserEventTags = function(user_id) {
   const query = {
     text: `
-      SELECT concert_id, cus_event_id, label FROM tags
+      SELECT event_id, cus_events_id, label FROM tags
         WHERE user_id = $1
           AND trip_id IS NULL;
     `,

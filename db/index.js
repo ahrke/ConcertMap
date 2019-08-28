@@ -12,9 +12,13 @@ const pool = new Pool({
 
 module.exports = {
   query: (queryText, queryParams, callback) => {
+    console.log("--==> from index. queryText: ", queryText)
+    console.log("--==> from index. queryParams: ", queryParams)
     let start = Date.now()
     return pool.query(queryText, queryParams, (err, res) => {
-      console.log(res)
+      if (res === undefined) {
+        callback("no data",NULL);
+      }
       const duration = Date.now() - start;
       console.log("executed query", { duration, rows: res.rowCount });
       callback(err, res);
