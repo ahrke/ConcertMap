@@ -53,7 +53,7 @@ const getVerifiedEvents = async(lat, lng) => {
         'concert_id': eventRes.id,
         'songkick_uri': eventRes.uri,
         'name': eventRes.displayName,
-        'start_date': eventRes.start,
+        'start_date': (new Date(eventRes.start.datetime ? eventRes.start.datetime : eventRes.start.date)).getTime(),
         'artists': artists,
         'venue': eventRes.venue.displayName,
         'latlng': [eventRes.venue.lat || eventRes.location.lat, eventRes.venue.lng || eventRes.location.lng]

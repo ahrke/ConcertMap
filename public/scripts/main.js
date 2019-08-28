@@ -48,14 +48,11 @@ async function onGMapLoad() {
       });
 
       // We need to retrieve the collection of artists, as well as the id of the event/concert they belong to
-      let collection = window.embededCollection.split('||').map(item => {
-        let id = item.split(',')[0];
-        let artists = item.split(',').slice(1)
-        return {
-          id,
-          artists
-        }
-      })
+      const collection = window.embededData
+        .map(event => {
+          const artists = event.artists.map(artist => artist.name);
+          return { id: event.concert_id, artists };
+        })
 
       artists = await getArtistsInfo(collection, hashParams.access_token);
 
@@ -66,17 +63,16 @@ async function onGMapLoad() {
   });
 }
 
-const getListNode = (concert) => {
+const getListNode = (event) => {
+  const formatTime = (m) => m.getUTCHours() + m.getUTCMinutes() + m.getUTCSeconds() === 0 ? '' : ' ' + [m.getUTCHours(), m.getUTCMinutes(), m.getUTCSeconds()].join(':');
+  const formatDate = (m) => [m.getUTCFullYear(), m.getUTCMonth(), m.getUTCDate()].join('/') + formatTime(m);
   const wrapper = document.createElement('div');
   wrapper.innerHTML =
-    `<li data-event-id="${concert.songkick_event_id}">
-        <img src='${concert.image640 ? concert.image640 : '#'}'>
+    `<li data-event-id="${event.concert_id}">
+        <img src='${event.image640 ? event.image640 : '#'}'>
         <p class='detail'>
-          <span class='title'>${concert.concertName.split('(')[0]}</span>
-          <time>
-            <span class='date'>${concert.start.date}</span>
-            <span class='time'>${concert.start.time}</span>
-          </time>
+          <span class='title'>${event.name.split('(')[0]}</span>
+          <time><span class='date'>${formatDate(new Date(event.start_date))}</span></time>
         </p>
         <button class="locate-btn fas fa-map-marker-alt"></button>
     </li>`;
@@ -100,8 +96,8 @@ const renderMarkers = (eventsRes) => {
   for (let eventRes of eventsRes) {
     const listNode = getListNode(eventRes);
     listNodes.push(listNode);
-    if (eventRes.lat && eventRes.lng) {
-      const marker = map.getMarker(eventRes.lat, eventRes.lng, redMarker);
+    if (eventRes.latlng) {
+      const marker = map.getMarker(eventRes.latlng[0], eventRes.latlng[1], redMarker);
       marker.listNode = listNode;
       listNode.marker = marker;
       map.registerMarker(marker, eventRes);

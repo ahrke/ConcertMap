@@ -22,17 +22,7 @@
   <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?libraries=places&key=<%=googleApiKey%>" async defer></script>
   <script type="module" src="/scripts/main.js"></script>
   <script type="text/javascript">
-    <%
-      let collection = concerts.map(concert => {
-        let artists = concert.performers.map(performer => performer.displayName.replace(/[^a-zA-Z ]/g, '')).join(',');
-        return [
-          concert.songkick_event_id,
-          artists
-        ]
-      }).join('||');
-    %>
     window.embededData = <%- JSON.stringify(concerts) %>;
-    window.embededCollection = "<%= collection %>";
   </script>
 </head>
 
