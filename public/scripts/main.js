@@ -1,12 +1,13 @@
-import { ConcertMap, redMarker, greenMarker, blueMarker } from './map.js';
+import { LinkedMarkerMap, MarkerInfoWindow } from './map.js';
 
 let map;
 let artists = {};
 let hashParams = {};
 
-async function onGMapLoad() {
+const onGMapLoad = async () => {
   // const { coords } = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res));
-  map = new ConcertMap(document.querySelector('.gmap-container'), {
+  window.map = map;
+  map = new LinkedMarkerMap(document.querySelector('.gmap-container'), {
     // center: { lat: coords.latitude, lng: coords.longitude },
     center: { lat: 43.661539, lng: -79.411079 },
     zoom: 14
@@ -25,15 +26,60 @@ async function onGMapLoad() {
   });
 
   map.addListener('markermouseover', (marker, data) => {
-    marker.listNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (!map.selectedMarker) {
+      map.selectMarker(marker);
+      marker.listNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  });
+
+  map.addListener('markermouseout', (marker, data) => {
+    if (map.selectedMarker) {
+      map.selectMarker(null);
+    }
   });
 
   map.addListener('markerregister', (marker, data) => {
     if (!marker.listNode) {
-      marker.listNode = getListNode({ songkick_event_id: 0, image640: null, concertName: data[0], start: { date: data[1], time: data[2] } });
+      marker.listNode = getListNode({ concert_id: 0, image640: null, name: data[0], start_date: (new Date()).getTime() });
       marker.listNode.marker = marker;
       registerListNode(marker.listNode);
     }
+  });
+
+  map.addListener('markerdrop', (marker) => {
+    const prompt = new MarkerInfoWindow(marker);
+
+    const onPopupLoad = (marker, containerNode, closeBtnNode) => {
+      const submitBtnNode = containerNode.querySelector('.custom-event-popup button');
+
+      // popup discard
+      closeBtnNode.addEventListener('click', (evt) => {
+        map.removeMarker(marker);
+        map.setCustomMarkers(true);
+        prompt.close();
+      });
+
+      // popup save
+      submitBtnNode.addEventListener('click', (evt) => {
+        const data = Array.from(containerNode.querySelectorAll('input[type="text"]')).map(textNode => textNode.value);
+        map.registerMarker(marker, data);
+        map.setCustomMarkers(true);
+        prompt.close();
+      });
+
+      map.setCustomMarkers(false);
+    };
+
+    const customEventPopup =
+      `<table class="custom-event-popup">
+      <tr><td>Who</td><td><input type="text"/></td></tr>
+      <tr><td><label>Where</label></td><td><input type="text"/></td></tr>
+      <tr><td><label>When</label></td><td><input type="text"/></td></tr>
+      <tr><td colspan="2"><button type="button" style="display: block; margin: auto;">Save</button></td></tr>
+    </table>`;
+    prompt.setClosable(true);
+    prompt.addListener('markerclick', onPopupLoad);
+    prompt.open(customEventPopup);
   });
 
   // Initialize data
@@ -54,14 +100,14 @@ async function onGMapLoad() {
           return { id: event.concert_id, artists };
         })
 
-      artists = await getArtistsInfo(collection, hashParams.access_token);
-
       renderMarkers(window.embededData);
+
+      artists = await getArtistsInfo(collection, hashParams.access_token);
     };
 
     initializeAsync();
   });
-}
+};
 
 const getListNode = (event) => {
   const formatTime = (m) => m.getUTCHours() + m.getUTCMinutes() + m.getUTCSeconds() === 0 ? '' : ' ' + [m.getUTCHours(), m.getUTCMinutes(), m.getUTCSeconds()].join(':');
@@ -97,7 +143,7 @@ const renderMarkers = (eventsRes) => {
     const listNode = getListNode(eventRes);
     listNodes.push(listNode);
     if (eventRes.latlng) {
-      const marker = map.getMarker(eventRes.latlng[0], eventRes.latlng[1], redMarker);
+      const marker = map.getNewMarker(eventRes.latlng[0], eventRes.latlng[1]);
       marker.listNode = listNode;
       listNode.marker = marker;
       map.registerMarker(marker, eventRes);
@@ -226,5 +272,6 @@ const getVenueDetails = async (query) => {
 
   return
 };
-
-google.maps.event.addDomListener(window, 'load', onGMapLoad);
+$(document).ready(() => {
+  google.maps.event.addDomListener(window, 'load', onGMapLoad);
+}
