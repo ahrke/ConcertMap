@@ -8,7 +8,7 @@ const db = require('../index');
 const getUserWithEmail = function(email) {
   const query = {
     text: `
-      SELECT * FROM users
+      SELECT email, password FROM users
       WHERE email = $1;
     `,
     values: [email]
@@ -32,37 +32,12 @@ exports.getUserWithEmail = getUserWithEmail;
  * @param {integer} user_id The user_id of the user.
  * @return {Promise<{}>} A promise to the user.
  */
-const getUserWithUserId = function(user_id) {
+const getProfile = function(user_id) {
   const query = {
     text: `
-      SELECT * FROM profiles
-      WHERE user_id = $1;
-    `,
-    values: [user_id]
-  };
-
-  return new Promise((resolve, reject) => {
-    db.query(query.text, query.values, (err, res) => {
-      if (err) {
-        console.error('query error',err.stack);
-        reject(err);
-      }
-      resolve(res.rows[0]);
-    });
-  })
-}
-exports.getUserWithUserId = getUserWithUserId;
-
-
-/**
- * Get user favourited and attended events from the database given their user_id.
- * @param {integer} user_id The user_id of the user
- * @return {Promise<{}>} A promise to the user.
- */
-const getUserCustomEvents = function(user_id) {
-  const query = {
-    text: `
-      SELECT * FROM customEvents c
+      SELECT u.name, p.bio, p.description, p.avatar_uri
+        FROM profiles p
+        JOIN users u ON u.id = p.user_id
         WHERE user_id = $1;
     `,
     values: [user_id]
@@ -78,6 +53,33 @@ const getUserCustomEvents = function(user_id) {
     });
   })
 }
+exports.getProfile = getProfile;
+
+
+/**
+ * Get user favourited and attended events from the database given their user_id.
+ * @param {integer} user_id The user_id of the user
+ * @return {Promise<{}>} A promise to the user.
+ */
+const getUserCustomEvents = function(user_id) {
+  const query = {
+    text: `
+      SELECT name, description, start_date, venue, latlng FROM customEvents
+        WHERE user_id = $1;
+    `,
+    values: [user_id]
+  };
+
+  return new Promise((resolve, reject) => {
+    db.query(query.text, query.values, (err, res) => {
+      if (err) {
+        console.error('query error',err.stack);
+        reject(err);
+      }
+      resolve(res.rows);
+    });
+  })
+}
 exports.getUserCustomEvents = getUserCustomEvents;
 
 
@@ -89,7 +91,7 @@ exports.getUserCustomEvents = getUserCustomEvents;
 const getUserEventTags = function(user_id) {
   const query = {
     text: `
-      SELECT * FROM tags
+      SELECT concert_id, cus_event_id, label FROM tags
         WHERE user_id = $1
           AND trip_id IS NULL;
     `,
@@ -102,7 +104,7 @@ const getUserEventTags = function(user_id) {
         console.error('query error',err.stack);
         reject(err);
       }
-      resolve(res.rows[0]);
+      resolve(res.rows);
     });
   })
 }
@@ -129,7 +131,7 @@ const getUserCreatedTrips = function(user_id) {
         console.error('query error',err.stack);
         reject(err);
       }
-      resolve(res.rows[0]);
+      resolve(res.rows);
     });
   })
 }
@@ -138,14 +140,13 @@ exports.getUserCreatedTrips = getUserCreatedTrips;
 
 /**
  * Get user favourited trips from the database given their user_id.
- * type of 1 => favourite
  * @param {integer} user_id The user_id of the user
  * @return {Promise<{}>} A promise to the user.
  */
 const getUserFavouritedTrips = function(user_id) {
   const query = {
     text: `
-      SELECT * FROM tags tg
+      SELECT tr.id, tr.name FROM tags tg
         JOIN trips tr ON tg.trip_id = tr.id
         WHERE tg.user_id = $1
           AND tg.label = 'fav';
@@ -159,7 +160,7 @@ const getUserFavouritedTrips = function(user_id) {
         console.error('query error',err.stack);
         reject(err);
       }
-      resolve(res.rows[0]);
+      resolve(res.rows);
     });
   })
 }

@@ -18,7 +18,7 @@ const getAllTrips = function() {
         console.error('query error',err.stack);
         reject(err);
       }
-      resolve(res.rows[0]);
+      resolve(res.rows);
     });
   })
 }
@@ -33,9 +33,9 @@ exports.getAllTrips = getAllTrips;
 const getTripData = function(trip_id) {
   const query = {
     text: `
-      SELECT * FROM trips t
-        JOIN stops s ON (t.id = s.trip_id)
-        WHERE trip_id = $1;
+      SELECT concert_id, cus_event_id FROM stops s
+        JOIN trips t ON (t.id = s.trip_id)
+        WHERE s.trip_id = $1;
     `,
     values: [trip_id]
   };
@@ -46,7 +46,7 @@ const getTripData = function(trip_id) {
         console.error('query error',err.stack);
         reject(err);
       }
-      resolve(res.rows[0]);
+      resolve(res.rows);
     });
   })
 }

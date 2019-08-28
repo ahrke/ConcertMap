@@ -5,5 +5,6 @@ CREATE TABLE customEvents (
   name VARCHAR(255),
   description TEXT,
   start_date DATE,
-  location VARCHAR(255)
+  venue VARCHAR(255),
+  latlng POINT
 );
