@@ -5,6 +5,6 @@ CREATE TABLE tags (
   user_id INTEGER REFERENCES users(id),
   event_id INTEGER,
   trip_id INTEGER REFERENCES trips(id),
-  custom_events_id INTEGER REFERENCES customEvents(id),
+  cus_events_id INTEGER REFERENCES custom_events(id),
   label tag_label_t NOT NULL
 );
