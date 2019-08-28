@@ -10,6 +10,7 @@ const ConcertMap = function(mapNode, ...p) {
   this.lines = [];
   this.markers = [];
   this.selectedMarker = null;
+  let customMarkerNode;
 
   // Event handlers
 
@@ -17,9 +18,9 @@ const ConcertMap = function(mapNode, ...p) {
     if (customMarkerNode) {
       customMarkerNode.classList.remove('disabled');
     }
-    popup.isVisible = false;
-    popup.marker.setMap(null);
-    delete popup.marker;
+    this.popup.isVisible = false;
+    this.popup.marker.setMap(null);
+    delete this.popup.marker;
   };
 
   const onPopupSave = (evt) => {
@@ -28,11 +29,11 @@ const ConcertMap = function(mapNode, ...p) {
     }
     const popupNode = document.querySelector('.custom-event-popup');
     const data = Array.from(popupNode.querySelectorAll('input[type="text"]')).map(textNode => textNode.value);
-    popup.close();
-    popup.isVisible = false;
-    popup.marker.setAnimation(null);
-    this.registerMarker(popup.marker, data);
-    delete popup.marker;
+    this.popup.close();
+    this.popup.isVisible = false;
+    this.popup.marker.setAnimation(null);
+    this.registerMarker(this.popup.marker, data);
+    delete this.popup.marker;
   };
 
   const onPopupLoad = (evt) => {
@@ -46,7 +47,7 @@ const ConcertMap = function(mapNode, ...p) {
     if (customMarkerNode) {
       customMarkerNode.classList.add('disabled');
     }
-    const marker = getMarker(evt.latLng.lat(), evt.latLng.lng(), greenMarker);
+    const marker = this.getMarker(evt.latLng.lat(), evt.latLng.lng(), greenMarker);
     marker.setAnimation(google.maps.Animation.DROP);
     marker.setDraggable(true);
     const cusEventPopup =
@@ -56,11 +57,11 @@ const ConcertMap = function(mapNode, ...p) {
       <tr><td><label>When</label></td><td><input type="text"/></td></tr>
       <tr><td colspan="2"><button type="button" style="display: block; margin: auto;">Save</button></td></tr>
     </table>`;
-    popup.setContent(cusEventPopup);
-    popup.open(map, marker);
-    popup.marker = marker;
-    popup.isVisible = true;
-    popup.addListener('domready', onPopupLoad);
+    this.popup.setContent(cusEventPopup);
+    this.popup.open(this, marker);
+    this.popup.marker = marker;
+    this.popup.isVisible = true;
+    this.popup.addListener('domready', onPopupLoad);
   };
 
   const registerDropMarkerHandler = () => {
