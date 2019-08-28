@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="/styles/list_area.css" type="text/css" />
   <link rel="stylesheet" href="/styles/nav.css" type="text/css" />
   <link rel="stylesheet" href="/styles/variables.css" type="text/css" />
+  <link rel="stylesheet" href="/styles/artist.css" type="text/css" />
   <link href="https://fonts.googleapis.com/css?family=Raleway&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
     integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
@@ -32,7 +33,7 @@
     <ul class='scroll nav-list'></ul>
     <div class="main">
       <div class='popup'>
-        <div class="artist"></div>
+        <div class="artist-area"></div>
         <div class="close-btn far fa-window-close"></div>
       </div>
       <div id="map" class="gmap-container"></div>
@@ -132,8 +133,8 @@
 
     const artistDisplay = (artist, containerNode) => {
       containerNode.innerHTML =
-      `<img src="${artist.image640}"/>
-      <div class="detail">
+      `<div class='artist'>
+        <img src="${artist.image640}"/>
         <h1 class='name'>${artist.name}</h1>
         <iframe class="player" src="${artist.iframeUrl}" width="300" height="600" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
       </div>`;
@@ -158,7 +159,7 @@
       if (!artists[id]) return;
       const popupNode = document.querySelector('.content .main .popup');
       popupNode.classList.add('enabled');
-      artistDisplay(artists[id][0], popupNode.querySelector('.artist'));
+      artistDisplay(artists[id][0], popupNode.querySelector('.artist-area'));
     }
 
     const getListNode = (concert) => {
