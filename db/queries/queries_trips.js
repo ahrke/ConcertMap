@@ -33,9 +33,9 @@ exports.getAllTrips = getAllTrips;
 const getTripData = function(trip_id) {
   const query = {
     text: `
-      SELECT concert_id, cus_event_id FROM stops s
+      SELECT t.name, s.concert_id, s.cus_event_id FROM stops s
         JOIN trips t ON (t.id = s.trip_id)
-        WHERE s.trip_id = $1;
+        WHERE trip_id = $1;
     `,
     values: [trip_id]
   };

@@ -8,7 +8,7 @@ const db = require('../index');
 const getCustomEventInfo = function(cus_event_id) {
   const query = {
     text: `
-      SELECT c.name, c.description, c.start_date, c.location FROM customEvents
+      SELECT id, name, description, start_date, location FROM customEvents
         WHERE id = $1;
     `,
     values: [cus_event_id]
