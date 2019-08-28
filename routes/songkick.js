@@ -1,15 +1,16 @@
 const express = require('express');
-const router  = express.Router();
-const songkick_api = require('../api/songkick');
+const router = express.Router();
+const songkick = require('../api/songkick');
 
 module.exports = () => {
-  router.get("/:lat/:long/:date", (req, res) => {
-    console.log("ROUTER songkick called: ",req.params.lat, req.params.long, req.params.date)
-    songkick_api.getConcerts(req.params.lat, req.params.long, req.params.date)
-      .then(result => res.json(result))
-      .catch(e => {
-        console.log("error from songkick route: ",e)
-      })
+  router.get("/:lat/:long/:date", async(req, res) => {
+    try {
+      const events = await songkick.getVerifiedEvents(req.params.lat, req.params.long);
+      res.json(events);
+    } catch (err) {
+      console.log("error from songkick route: ", err);
+    }
   });
-  return router
+
+  return router;
 };
