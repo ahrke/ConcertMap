@@ -1,0 +1,178 @@
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta charset="utf-8">
+        <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
+        <title>Home Page</title>
+
+        <link rel="stylesheet" href="/vendor/normalize-4.1.1.css" type="text/css" />
+        <link rel="stylesheet" href="/vendor/border-box.css" type="text/css" />
+        <link rel="stylesheet" href="/styles/layout.css" type="text/css" />
+        <link rel="stylesheet" href="/styles/enter_page.css" type="text/css" />
+        <link href="https://fonts.googleapis.com/css?family=Raleway&display=swap" rel="stylesheet">
+
+        <script type="text/javascript" src="/vendor/jquery-3.0.0.js"></script>
+        <script type="text/javascript" src="/scripts/app.js"></script>
+
+        <style>
+          body {
+            display: flex;
+            flex-direction: column;
+            color: white;
+          }
+        </style>
+      </head>
+
+
+  <body>
+    <form action="/users/new" method="POST" class="">
+      <div>
+          <label for="name" class="">Name:     </label>
+          <input type="text" name="name" class="form-control" />
+        </div>
+        <div>
+        <label for="email" class="">Email:     </label>
+        <input type="email" name="email" class="form-control" />
+      </div>
+      <div>
+        <label for="password">Password:  </label>
+        <input type="password" name="password" class="form-control" />
+      </div>
+      <button type="submit" >Register me Meow!</button>
+    </form>
+
+
+    <h1> profile</h1>
+    <form action="/users/profile" method="POST" class="">
+      <div>
+          <label for="name" class="">Id:     </label>
+          <input type="number" name="user_id" class="form-control" />
+          <label for="name" class="">Bio:     </label>
+          <input type="text" name="bio" class="form-control" />
+        </div>
+        <div>
+        <label for="email" class="">Avatar URI:     </label>
+        <input type="text" name="avatar_uri" class="form-control" />
+      </div>
+      <button type="submit" class="btn btn-primary">Register me Meow!</button>
+    </form>
+
+
+    <h1> profile update bio</h1>
+    <form action="/users/profile/updateBio" method="POST" class="">
+      <div>
+          <label for="name" class="">Id:     </label>
+          <input type="number" name="user_id" class="form-control" />
+        </div>
+        <div>
+        <labelclass="">bio:     </label>
+        <input type="text" name="bio" class="form-control" />
+      </div>
+      <button type="submit" class="btn btn-primary">Register me Meow!</button>
+    </form>
+
+
+    <h1> profile update avatar uri</h1>
+    <form action="/users/profile/updateAvatar" method="POST" class="">
+      <div>
+          <label for="name" class="">id:     </label>
+          <input type="number" name="user_id" class="form-control" />
+        </div>
+        <div>
+        <label class="">avatar_uri:     </label>
+        <input type="text" name="avatar_uri" class="form-control" />
+      </div>
+      <button type="submit" class="btn btn-primary">Register me Meow!</button>
+    </form>
+
+    <h1> add tag</h1>
+    <form action="/users/tag" method="POST" class="">
+      <div>
+          <label for="name" class="">user_id:     </label>
+          <input type="number" name="user_id" class="form-control" />
+        </div>
+        <div>
+            <label for="name" class="">event_id:     </label>
+            <input type="number" name="event_id" class="form-control" />
+          </div>
+          <div>
+              <label for="name" class="">trip_id:     </label>
+              <input type="number" name="trip_id" class="form-control" />
+            </div>
+          <div>
+              <label for="name" class="">cus_event_id:     </label>
+              <input type="number" name="cus_event_id" class="form-control" />
+            </div>
+        <div>
+        <label class="">label:     </label>
+        <input type="text" name="label" class="form-control" />
+      </div>
+      <button type="submit" class="btn btn-primary">Register me Meow!</button>
+    </form>
+
+    <h1> add customEvent</h1>
+    <form action="/users/customEvent" method="POST" class="">
+      <div>
+          <label for="name" class="">user_id:     </label>
+          <input type="number" name="user_id" class="form-control" />
+        </div>
+        <div>
+            <label class="">name:     </label>
+            <input type="text" name="name" class="form-control" />
+          </div>
+        <div>
+            <label class="">description:     </label>
+            <input type="textarea" name="description" class="form-control" />
+          </div>
+        <div>
+            <label class="">venue:     </label>
+            <input type="text" name="venue" class="form-control" />
+          </div>
+        <div>
+            <label class="">start_date:     </label>
+            <input type="text" name="start_date" class="form-control" />
+          </div>
+
+        <div>
+        <label class="">latlng:     </label>
+        <input type="text" name="latlng" class="form-control" />
+      </div>
+      <button type="submit" class="btn btn-primary">Register me Meow!</button>
+    </form>
+
+
+    <h1> add new trip</h1>
+    <form action="/users/newTrip" method="POST" class="">
+      <div>
+          <label for="name" class="">user_id:     </label>
+          <input type="number" name="user_id" class="form-control" />
+        </div>
+        <div>
+        <label class="">name:     </label>
+        <input type="text" name="name" class="form-control" />
+      </div>
+      <button type="submit" class="btn btn-primary">Register me Meow!</button>
+    </form>
+
+
+    <h1> add stops</h1>
+    <form action="/users/addStop" method="POST" class="">
+      <div>
+          <label for="name" class="">trip_id:     </label>
+          <input type="number" name="trip_id" class="form-control" />
+        </div>
+        <div>
+        <label class="">event_id:     </label>
+        <input type="number" name="eventid" class="form-control" />
+      </div>
+      <div>
+          <label for="name" class="">cus_event_id:     </label>
+          <input type="number" name="cus_event_id" class="form-control" />
+        </div>
+      <button type="submit" class="btn btn-primary">Register me Meow!</button>
+    </form>
+
+
+  </body>
+
+</html>

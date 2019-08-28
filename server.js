@@ -58,6 +58,9 @@ app.use("/api/spotify", spotifyRoutes());
 app.use("/", dataRoutes(database));
 // Note: mount other resources here, using the same pattern above
 
+app.get("/temp_form", (req, res) => {
+  res.render("temp_user_form");
+})
 
 // Home page
 // Warning: avoid creating more routes in this file!
@@ -65,6 +68,7 @@ app.use("/", dataRoutes(database));
 app.get("/", (req, res) => {
   res.render("index", {baseURI: process.env.BASE_URI, spotifyApiID: process.env.SPOTIFY_API_ID, googleApiKey: process.env.GOOGLE_API_KEY});
 });
+
 
 (async() => {
   const getListenPromise = (server, ...p) => {

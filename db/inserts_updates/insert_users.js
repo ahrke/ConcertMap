@@ -41,7 +41,7 @@ const addProfile =  function(user) {
         ($1, $2, $3)
       RETURNING *;
     `,
-    values: [user.id, user.bio, user.avatar_uri]
+    values: [user.user_id, user.bio, user.avatar_uri]
   };
 
   return new Promise((resolve, reject) => {
@@ -97,7 +97,7 @@ const updateProfileAvatarUri =  function(user) {
         WHERE user_id = $1
       RETURNING *;
     `,
-    values: [user.id, user.avatar_uri]
+    values: [user.user_id, user.avatar_uri]
   };
 
   return new Promise((resolve, reject) => {

@@ -8,7 +8,7 @@ const db = require('../index');
 const addCustomEvent =  function(cusEvent) {
   const query = {
     text: `
-      INSERT INTO customEvents (user_id, name, description, start_date, venue, latlng)
+      INSERT INTO custom_events (user_id, name, description, start_date, venue, latlng)
       VALUES
         ($1, $2, $3, $4, $5, $6)
       RETURNING *;

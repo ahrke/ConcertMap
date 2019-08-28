@@ -34,14 +34,23 @@ exports.addTrip = addTrip;
  * @return {Promise<{}>} A promise to the user.
  */
 const addStop =  function(stop) {
+  let option = ''
+  let arr = [stop.trip_id];
+  if (stop.event_id) {
+    option = 'event_id';
+    arr.push(stop.event_id);
+  } else {
+    option = 'cus_event_id';
+    arr.push(stop.cus_event_id);
+  }
   const query = {
     text: `
-      INSERT INTO stops (trip_id, concert_id, cus_event_id)
+      INSERT INTO stops (trip_id, ${option})
       VALUES
-        ($1, $2, $3)
+        ($1, $2)
       RETURNING *;
     `,
-    values: [stop.trip_id, stop.concert_id, stop.cus_event_id]
+    values: arr
   };
 
   return new Promise((resolve, reject) => {

@@ -166,10 +166,10 @@ module.exports = (db) => {
   router.post("/profile/updateAvatar", (req, res) => {
     let user = {
       user_id: req.body.user_id,
-      bio: req.body.avatar_uri
+      avatar_uri: req.body.avatar_uri
     };
 
-    db.updateProfileBio(user)
+    db.updateProfileAvatarUri(user)
       .then(data => {
         res.json(data)
       })
@@ -182,11 +182,13 @@ module.exports = (db) => {
 
   // POST add a profile for a created user
   router.post("/profile", (req, res) => {
+    console.log("from /users/profile ==> user_id:", typeof req.body.user_id)
     let profile = {
       user_id: req.body.user_id,
       bio: req.body.bio,
       avatar_uri: req.body.avatar_uri
     };
+    console.log(profile)
 
     db.addProfile(profile)
       .then(data => {
@@ -204,7 +206,7 @@ module.exports = (db) => {
   router.post("/tag", (req, res) => {
     let tag = {
       user_id: req.session.user_id,
-      concert_id: req.body.concert_id,
+      event_id: req.body.event_id,
       trip_id: req.body.trip_id,
       cus_event_id: req.body.cus_event_id,
       label: req.body.label
@@ -264,10 +266,10 @@ module.exports = (db) => {
   });
 
   // POST add a stop for a trip
-  router.post("/customEvent", (req, res) => {
+  router.post("/addStop", (req, res) => {
     let stop = {
       trip_id: req.body.trip_id,
-      concert_id: req.body.concert_id,
+      event_id: req.body.event_id,
       cus_event_id: req.body.cus_event_id
     };
 

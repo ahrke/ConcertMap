@@ -6,14 +6,27 @@ const db = require('../index');
  * @return {Promise<{}>} A promise to the user.
  */
 const addTag =  function(tag) {
+  let option = '';
+  let arr = [tag.user_id]
+  if (tag.event_id) {
+    option = 'event_id';
+    arr.push(tag.event_id);
+  } else if (tag.trip_id) {
+    option = 'trip_id';
+    arr.push(tag.trip_id);
+  } else {
+    option = 'cus_events_id';
+    arr.push(tag.cus_event_id);
+  }
+  arr.push(tag.label);
   const query = {
     text: `
-      INSERT INTO tags (user_id, concert_id, trip_id, cus_event_id, label)
+      INSERT INTO tags (user_id, ${option}, label)
       VALUES
-        ($1, $2, $3, $4, $5)
+        ($1, $2, $3)
       RETURNING *;
     `,
-    values: [tag.user_id, tag.concert_id, tag.trip_id, tag.cus_event_id, tag.label]
+    values: arr
   };
 
   return new Promise((resolve, reject) => {
