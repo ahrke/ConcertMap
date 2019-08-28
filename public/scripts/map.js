@@ -4,70 +4,58 @@ const redMarker = 'https://maps.google.com/mapfiles/ms/icons/red-dot.png';
 const blueMarker = 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png';
 const greenMarker = 'https://maps.google.com/mapfiles/ms/icons/green-dot.png';
 
-const ConcertMap = function(mapNode, ...p) {
-  google.maps.Map.call(this, mapNode, ...p);
-  this.popup = new google.maps.InfoWindow();
-  this.lines = [];
+const MarkerInfoWindow = function(marker, ...p) {
+  this._marker = marker;
+  this._uniqueId = MarkerInfoWindow.globalCount++;
+  this._isClosable = true;
+  google.maps.InfoWindow.call(this, ...p);
+
+  this.addListener('domready', (evt) => {
+    const containerNode = document.querySelector(`.marker-info-window-content[data-unique-id="${this._uniqueId}"]`);
+    const closeBtnNode = containerNode.closest('div.gm-style-iw-c').querySelector('button[title="Close"]');
+    if (!this._isClosable) {
+      closeBtnNode.style.setProperty('visibility', 'hidden');
+    } else {
+      closeBtnNode.style.removeProperty('visibility');
+    }
+    google.maps.event.trigger(this, 'markerclick', this._marker, containerNode, closeBtnNode);
+  });
+};
+
+MarkerInfoWindow.globalCount = 0;
+
+MarkerInfoWindow.prototype = Object.create(google.maps.InfoWindow.prototype);
+
+MarkerInfoWindow.prototype.setClosable = function(b) {
+  this._isClosable = b;
+};
+
+MarkerInfoWindow.prototype.open = function(content) {
+  const wrappedContent = `<div class="marker-info-window-content" data-unique-id="${this._uniqueId}">${content}</div>`;
+  this.setContent(wrappedContent);
+  google.maps.InfoWindow.prototype.open.call(this, this._marker.getMap(), this._marker);
+};
+
+const LinkedMarkerMap = function(mapNode, opts) {
+  this.options = Object.assign({customMarkers: true}, opts);
+  this._mapNode = mapNode;
   this.markers = [];
   this.selectedMarker = null;
-  let customMarkerNode;
+  google.maps.Map.call(this, mapNode, this.options);
 
   // Event handlers
 
-  const onPopupDiscard = (evt) => {
-    if (customMarkerNode) {
-      customMarkerNode.classList.remove('disabled');
-    }
-    this.popup.isVisible = false;
-    this.popup.marker.setMap(null);
-    delete this.popup.marker;
-  };
-
-  const onPopupSave = (evt) => {
-    if (customMarkerNode) {
-      customMarkerNode.classList.remove('disabled');
-    }
-    const popupNode = document.querySelector('.custom-event-popup');
-    const data = Array.from(popupNode.querySelectorAll('input[type="text"]')).map(textNode => textNode.value);
-    this.popup.close();
-    this.popup.isVisible = false;
-    this.popup.marker.setAnimation(null);
-    this.registerMarker(this.popup.marker, data);
-    delete this.popup.marker;
-  };
-
-  const onPopupLoad = (evt) => {
-    document.querySelector('.gm-ui-hover-effect').addEventListener('click', onPopupDiscard);
-    const popupNode = document.querySelector('.custom-event-popup');
-    const submitBtnNode = popupNode.querySelector('button');
-    submitBtnNode.addEventListener('click', onPopupSave);
-  };
-
-  const onPopupShow = (evt) => {
-    if (customMarkerNode) {
-      customMarkerNode.classList.add('disabled');
-    }
-    const marker = this.getMarker(evt.latLng.lat(), evt.latLng.lng(), greenMarker);
+  const dropMarker = (latLng) => {
+    // Drop marker on evt.latlng
+    const marker = this.getNewMarker(latLng.lat(), latLng.lng(), greenMarker);
     marker.setAnimation(google.maps.Animation.DROP);
     marker.setDraggable(true);
-    const cusEventPopup =
-      `<table class="custom-event-popup">
-      <tr><td>Who</td><td><input type="text"/></td></tr>
-      <tr><td><label>Where</label></td><td><input type="text"/></td></tr>
-      <tr><td><label>When</label></td><td><input type="text"/></td></tr>
-      <tr><td colspan="2"><button type="button" style="display: block; margin: auto;">Save</button></td></tr>
-    </table>`;
-    this.popup.setContent(cusEventPopup);
-    this.popup.open(this, marker);
-    this.popup.marker = marker;
-    this.popup.isVisible = true;
-    this.popup.addListener('domready', onPopupLoad);
+    google.maps.event.trigger(this, 'markerdrop', marker);
   };
 
   const registerDropMarkerHandler = () => {
-    const map = this;
     let dropMarkerDate = null;
-    const customMarkerNode = (() => {
+    const newMarkerControl = (() => {
       const wrapper = document.createElement('div');
       wrapper.innerHTML =
         `<div class="custom-marker-container">
@@ -76,55 +64,66 @@ const ConcertMap = function(mapNode, ...p) {
       return wrapper.childNodes[0];
     })();
 
-    map.addListener('mouseover', (evt) => {
+    this.addListener('mouseover', (evt) => {
+      if (!this.options.customMarkers) return;
       const now = +new Date;
       if (now - dropMarkerDate < 3000) {
         dropMarkerDate = null;
-        onPopupShow.call(this, evt);
+        dropMarker(evt.latLng);
       }
     });
 
-    mapNode.addEventListener('dragover', function(evt) {
+    this._mapNode.addEventListener('dragover', function(evt) {
       evt.preventDefault();
     });
 
-    customMarkerNode.querySelector('.custom-marker-btn').addEventListener('dragend', function(evt) {
+    newMarkerControl.querySelector('.custom-marker-btn').addEventListener('dragend', function(evt) {
       dropMarkerDate = +new Date;
     });
 
-    map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(customMarkerNode);
+    this.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(newMarkerControl);
   };
 
-  const registerLongClickHandler = () => {
-    const map = this;
+  const registerLongPressHandler = () => {
     let mPressDate = null;
 
     const onLongPress = (evt) => {
+      if (!this.options.customMarkers) return;
       const now = +new Date;
-      if (!this.popup.isVisible && mPressDate && now - mPressDate > 300) {
+      if (mPressDate && now - mPressDate > 300) {
         mPressDate = null;
-        onPopupShow.call(this, evt);
+        dropMarker(evt.latLng);
       }
     };
 
-    map.addListener('mousedown', function() {
+    this.addListener('mousedown', function() {
       mPressDate = +new Date;
     });
-    map.addListener('drag', function() {
+    this.addListener('drag', function() {
       mPressDate = null;
     });
-    map.addListener('mouseover', onLongPress);
-    map.addListener('mouseup', onLongPress);
+    this.addListener('mouseover', onLongPress);
+    this.addListener('mouseup', onLongPress);
   };
 
   registerDropMarkerHandler();
 
-  registerLongClickHandler();
+  registerLongPressHandler();
 };
 
-ConcertMap.prototype = Object.create(google.maps.Map.prototype);
+LinkedMarkerMap.prototype = Object.create(google.maps.Map.prototype);
 
-ConcertMap.prototype.selectMarker = function(marker) {
+LinkedMarkerMap.prototype.setCustomMarkers = function(isAllowed) {
+  this.options.customMarkers = isAllowed;
+  const newMarkerControl = this._mapNode.querySelector('.custom-marker-container');
+  if (!isAllowed) {
+    if (newMarkerControl) newMarkerControl.style.setProperty('visibility', 'hidden');
+  } else {
+    if (newMarkerControl) newMarkerControl.style.removeProperty('visibility');
+  }
+};
+
+LinkedMarkerMap.prototype.selectMarker = function(marker) {
   if (marker === this.selectedMarker) return;
 
   if (this.selectedMarker) {
@@ -140,56 +139,56 @@ ConcertMap.prototype.selectMarker = function(marker) {
   }
 };
 
-ConcertMap.prototype.filterMarker = function(opts) {
-  // for (let marker of markers) {
-
-  // }
+LinkedMarkerMap.prototype.filterMarker = function(opts) {
+  for (let marker of this.markers) {
+    const isFiltered = true;
+    marker.setVisible(isFiltered);
+  }
 };
 
-ConcertMap.prototype.registerMarker = function(marker, data) {
-  const onMarkerClick = (evt, marker, data) => {
-    google.maps.event.trigger(this, 'markerclick', marker, data);
-  };
+LinkedMarkerMap.prototype.getNewMarker = function(lat, lng, iconPath) {
+  iconPath = iconPath ? iconPath : redMarker;
+  const marker = new google.maps.Marker({ position: { lat, lng }, map: this, icon: { url: iconPath } });
+  marker.infoWindow = new MarkerInfoWindow(marker);
+  return marker;
+};
 
-  const onMarkerMouseOver = (evt, marker, data) => {
-    if (!this.selectedMarker) {
-      this.selectMarker(marker);
-    }
-    google.maps.event.trigger(this, 'markermouseover', marker, data);
-  };
-
-  const onMarkerMouseOut = (evt, marker, data) => {
-    if (this.selectedMarker) {
-      this.selectMarker(null);
-    }
-    google.maps.event.trigger(this, 'markermouseout', marker, data);
-  };
-
-  marker.addListener('click', evt => onMarkerClick(evt, marker, data));
-  marker.addListener('mouseover', evt => onMarkerMouseOver(evt, marker, data));
-  marker.addListener('mouseout', evt => onMarkerMouseOut(evt, marker, data));
+LinkedMarkerMap.prototype.registerMarker = function(marker, data) {
+  marker.addListener('click', evt => google.maps.event.trigger(this, 'markerclick', marker, data));
+  marker.addListener('mouseover', evt => google.maps.event.trigger(this, 'markermouseover', marker, data));
+  marker.addListener('mouseout', evt => google.maps.event.trigger(this, 'markermouseout', marker, data));
+  marker.data = data;
   this.markers.push(marker);
   google.maps.event.trigger(this, 'markerregister', marker, data);
 };
 
-ConcertMap.prototype.getMarker = function(lat, lng, iconPath) {
-  iconPath = iconPath ? iconPath : redMarker;
-  return new google.maps.Marker({ position: { lat, lng }, map: this, icon: { url: iconPath } });
-};
-
-ConcertMap.prototype.addStop = function(lat, lng, data, iconPath) {
-  const marker = getMarker(lat, lng, iconPath);
-  registerMarker(marker, data);
-  if (markers.length >= 2) {
-    const lineSymbol = { path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW };
-    const path = [markers[markers.length - 2].position, markers[markers.length - 1].position];
-    const line = new google.maps.Polyline({
-      path,
-      map,
-      icons: [{ icon: lineSymbol }],
-    });
+LinkedMarkerMap.prototype.removeMarker = function(marker) {
+  for (let i in this.markers) {
+    if (marker === this.markers[i]) {
+      this.markers.splice(i, 1);
+    }
   }
-  return marker;
+  if (marker.next) {
+    marker.next.prev = marker.prev;
+  }
+  if (marker.prev) {
+    marker.prev.next = marker.next;
+  }
+  marker.setMap(null);
 };
 
-export { ConcertMap, redMarker, blueMarker, greenMarker };
+LinkedMarkerMap.prototype.addLink = function(marker1, marker2) {
+  const lineSymbol = { path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW };
+  const path = [marker1.position, marker2.position];
+  const line = new google.maps.Polyline({
+    path,
+    map: this,
+    icons: [{ icon: lineSymbol }],
+  });
+  marker1.nextLine = line;
+  marker2.prevLine = line;
+  marker1.next = marker2;
+  marker2.prev = marker1;
+};
+
+export { LinkedMarkerMap, MarkerInfoWindow };
