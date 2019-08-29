@@ -97,7 +97,8 @@
 
     for (let trip of trips) {
       let i = '';
-      if (trip.user_id !== user_id) {
+      console.log("what is heart?",trip)
+      if (trip.user_id !== user_id && !trip.heart) {
         i = `<i class="far fa-heart" onclick="favouriteTrip(${trip.id})"></i>`
       }
       tripList.innerHTML += `

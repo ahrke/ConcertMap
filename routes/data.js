@@ -40,18 +40,37 @@ module.exports = (db) => {
   // GET all current user's created trips
   router.get("/trips/my", (req, res) => {
     if (req.session.user_id) {
-      db.getUserCreatedTrips(req.session.user_id)
-      .then(data => {let user = {
-        user_id: req.session.user_id
-      }
-        let trips = data;
-        res.render('all_trips',{user, trips, googleApiKey: GOOGLE_API_KEY});
-      })
-      .catch(err => {
-        res
-        .status(500)
-          .json({ error: err.message });
-      });
+      let id = req.session.user_id;
+      let userCreatedTripsPromise = db.getUserCreatedTrips(id);
+      let userFavouritedTrips = db.getUserFavouritedTrips(id);
+      Promise.all([userCreatedTripsPromise, userFavouritedTrips])
+        .then(data => {
+          console.log("==>results from trips/my:",data)
+          let user = {
+            user_id: id
+          }
+          let trips = [];
+          for (let d of data) {
+            for (let dd of d) {
+              dd.heart = false;
+              dd.user_id = id;
+              trips.push(dd)
+            }
+          }
+          res.render('all_trips',{user, trips, googleApiKey: GOOGLE_API_KEY});
+        })
+        .catch(err => {
+          console.log("error trying to get all user created and fav trips. err:",err)
+        })
+      // db.getUserCreatedTrips(id)
+      // .then(data => {
+
+      // })
+      // .catch(err => {
+      //   res
+      //   .status(500)
+      //     .json({ error: err.message });
+      // });
     } else {
       res.redirect('/login');
     }
