@@ -77,8 +77,8 @@ app.get("/", (req, res) => {
 
   const httpServer = http.createServer(app);
   try {
-    await getListenPromise(httpServer, 80, BIND_HOST);
-    console.log("App listening on port 80");
+    await getListenPromise(httpServer, 3000, BIND_HOST);
+    console.log("App listening on port 3000");
   } catch (err) {
     await getListenPromise(httpServer, process.env.ALT_PORT, BIND_HOST);
     console.log(`App listening on port ${process.env.ALT_PORT}`);

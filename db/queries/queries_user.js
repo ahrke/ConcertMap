@@ -1,28 +1,5 @@
 const db = require('../index');
-
-
-/**
- * Get a single user from the database given their email.
- * @param {email: string, password: string} email The email of the user.
- * @return {Promise<{}>} A promise to the user.
- */
-const userLogin = function(email, password) {
-  return this.getUserWithEmail(email)
-    .then(res => {
-      return new Promise((resolve, reject) => {
-        if (res.password === password) {
-          resolve(res.id)
-        } else {
-          reject("fail. Fields do not match")
-        }
-      })
-    })
-      .then(user_id => {
-        console.log("==--==> into login's branch to profile. user_id:", user_id)
-        return this.getProfile(user_id)
-      })
-}
-exports.userLogin = userLogin;
+const bcrypt = require('bcrypt');
 
 
 /**
@@ -58,13 +35,12 @@ exports.getUserWithEmail = getUserWithEmail;
  * @return {Promise<{}>} A promise to the user.
  */
 const getProfile = function(user_id) {
-  console.log("=> query for profiles with id: ",user_id)
   const query = {
     text: `
       SELECT u.id, u.name, p.bio, p.avatar_uri
         FROM profiles p
         JOIN users u ON u.id = p.user_id
-        WHERE p.user_id = $1;
+        WHERE u.id = $1;
     `,
     values: [user_id]
   };
