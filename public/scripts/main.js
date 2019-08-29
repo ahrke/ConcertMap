@@ -1,4 +1,5 @@
 import { LinkedMarkerMap, MarkerInfoWindow } from './map.js';
+import { registerNewEventPopup } from './popup.js';
 
 let map;
 let artists = {};
@@ -22,7 +23,7 @@ const onGMapLoad = async () => {
   });
 
   map.addListener('markerclick', (marker, data) => {
-    showArtist(data.songkick_event_id);
+    showArtist(data.concert_id);
   });
 
   map.addListener('markermouseover', (marker, data) => {
@@ -51,24 +52,21 @@ const onGMapLoad = async () => {
   // Initialize data
   $(document).ready(() => {
     const initializeAsync = async () => {
-      if (window.location.hash) {
-        hashParams = getHashParams();
-      }
-
       document.querySelector('.popup .close-btn').addEventListener('click', function(evt) {
         this.closest('.popup').classList.remove('enabled');
       });
 
-      // We need to retrieve the collection of artists, as well as the id of the event/concert they belong to
+      window.embededData.splice(25); // @TODO ONLY FOR TESTING UNTIL SPOTIFY API IS FIXED
+
+      renderMarkers(window.embededData);
+
+      const spotifyToken = sessionStorage.getItem('spotify_token');
       const collection = window.embededData
         .map(event => {
           const artists = event.artists.map(artist => artist.name);
           return { id: event.concert_id, artists };
-        })
-
-      renderMarkers(window.embededData);
-
-      artists = await getArtistsInfo(collection, hashParams.access_token);
+        });
+      artists = await getArtistsInfo(collection, spotifyToken);
     };
 
     initializeAsync();
@@ -88,6 +86,7 @@ const getListNode = (event) => {
         </p>
         <button class="locate-btn fas fa-map-marker-alt"></button>
     </li>`;
+  wrapper.childNodes[0].addEventListener('click', () => showArtist(event.concert_id));
   return wrapper.childNodes[0];
 };
 
@@ -132,16 +131,6 @@ const onListLocate = function(evt) {
   map.setCenter(listNode.marker.position);
   map.selectMarker(listNode.marker);
 };
-
-const getHashParams = () => {
-  const hashParams = {};
-  var e, r = /([^&;=]+)=?([^&;]*)/g,
-    q = window.location.hash.substring(1);
-  while (e = r.exec(q)) {
-    hashParams[e[1]] = decodeURIComponent(e[2]);
-  }
-  return hashParams;
-}
 
 const getArtistsInfo = async (artists, access_token) => {
   let artistsCollection = {};
@@ -195,8 +184,8 @@ const getArtistsInfo = async (artists, access_token) => {
 
 const artistDisplay = (artist, containerNode) => {
   containerNode.innerHTML =
-    `<div class="detail">
-      <img src="${artist.image640}"/>
+    `<div class="artist">
+      <img src="${artist.image640 ? artist.image640 : '#'}"/>
       <h1 class='name'>${artist.name}</h1>
       <iframe class="player" src="${artist.iframeUrl}" width="300" height="600" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
     </div>`;
@@ -240,4 +229,4 @@ const getVenueDetails = async (query) => {
 };
 $(document).ready(() => {
   google.maps.event.addDomListener(window, 'load', onGMapLoad);
-}
+});

@@ -1,63 +1,70 @@
 const express = require('express');
+const songkick = require('../api/songkick');
 const router = express.Router();
 
 module.exports = (db) => {
-  // router.get('/:id', (req, res) => {
-  //   let user = {
-  //     name: 'Dave',
-  //     id: req.params.id,
-  //     bio: `
-  //       I come close
-  //       Let me show you everything I know
-  //       The jungle slang
-  //       Spinning around my head and I stare
-  //       While my naked fool
-  //       Fresh out of an icky gooey womb
-  //       A woozy womb
-  //       Dope so good, a silky smooth perfume
+  router.get('/testuser', async(req, res) => {
+    const user = {
+      name: 'Dave',
+      id: req.params.id,
+      bio: `
+        I come close
+        Let me show you everything I know
+        The jungle slang
+        Spinning around my head and I stare
+        While my naked fool
+        Fresh out of an icky gooey womb
+        A woozy womb
+        Dope so good, a silky smooth perfume
+        o
+        Ride my little pooh bear, wanna take a chance
+        Wanna sip this smooth air, kick it in the sand
+        I'd say I told you so but you just gonna cry
+        You just wanna know those peanut butter vibes
 
-  //       Ride my little pooh bear, wanna take a chance
-  //       Wanna sip this smooth air, kick it in the sand
-  //       I'd say I told you so but you just gonna cry
-  //       You just wanna know those peanut butter vibes
+        Mind my simple song, this ain't gonna work
+        Mind my wicked words and tipsy topsy smirk
+        I can't take this place, I can't take this place
+        I just wanna go where I can get some space
+        Truth be told
+        I've been here, I've done this all before
+        I tell you go gloom
+        I cut it up and puff it into bloom
 
-  //       Mind my simple song, this ain't gonna work
-  //       Mind my wicked words and tipsy topsy smirk
-  //       I can't take this place, I can't take this place
-  //       I just wanna go where I can get some space
-  //       Truth be told
-  //       I've been here, I've done this all before
-  //       I tell you go gloom
-  //       I cut it up and puff it into bloom
+        Ride my little pooh bear, wanna take a chance
+        Wanna sip this smooth air, kick it in the sand
+        I'd say I told you so but you just gonna cry
+        You just wanna know those peanut butter vibes
 
-  //       Ride my little pooh bear, wanna take a chance
-  //       Wanna sip this smooth air, kick it in the sand
-  //       I'd say I told you so but you just gonna cry
-  //       You just wanna know those peanut butter vibes
+        Hold my hand, flow back to the summer time
+        Tangled in the willows, now comes the tide
+        How can I believe you, how can I be nice
+        Tripping around the tree stumps in your summer smile
+        `
+    };
 
-  //       Hold my hand, flow back to the summer time
-  //       Tangled in the willows, now comes the tide
-  //       How can I believe you, how can I be nice
-  //       Tripping around the tree stumps in your summer smile
-  //       `
+    try {
+      const eventsRes = await songkick.getVerifiedEvents(43.661539, -79.411079);
+      res.render('account', { events: eventsRes, user, googleApiKey: process.env.GOOGLE_API_KEY });
+    } catch (err) {
+      console.log("error from songkick route: ", err);
+    }
 
-  //   }
-  //   res.render('account', { user, googleApiKey: process.env.GOOGLE_API_KEY })
-  // })
+  });
 
 
   router.get("/login/:email/:password", (req, res) => {
     db.userLogin(req.params.email, req.params.password)
-    .then(data => {
-      req.session.user_id = data.id;
-      res.json(data);
-    })
-    .catch(err => {
+      .then(data => {
+        req.session.user_id = data.id;
+        res.json(data);
+      })
+      .catch(err => {
         res
           .status(500)
           .json({ error: err.message });
       });
-    });
+  });
 
   // GET user's custom created events
   router.get("/myEvents", (req, res) => {
@@ -67,48 +74,48 @@ module.exports = (db) => {
       })
       .catch(err => {
         res
-        .status(500)
+          .status(500)
           .json({ error: err.message });
-        });
+      });
   });
 
   // GET user's favourites and attended events
   router.get("/myTags", (req, res) => {
     db.getUserEventTags(req.session.user_id)
-    .then(data => {
-      res.json(data);
-    })
-    .catch(err => {
-      res
-      .status(500)
-      .json({ error: err.message });
-    });
+      .then(data => {
+        res.json(data);
+      })
+      .catch(err => {
+        res
+          .status(500)
+          .json({ error: err.message });
+      });
   });
 
   // GET user's created trips
   router.get("/myTrips", (req, res) => {
     db.getUserCreatedTrips(req.session.user_id)
-    .then(data => {
-      res.json(data);
-    })
-    .catch(err => {
-      res
-      .status(500)
-        .json({ error: err.message });
-    });
+      .then(data => {
+        res.json(data);
+      })
+      .catch(err => {
+        res
+          .status(500)
+          .json({ error: err.message });
+      });
   });
 
   // GET user's favourited trips
   router.get("/myFavs", (req, res) => {
     db.getUserFavouritedTrips(req.session.user_id)
-    .then(data => {
-      res.json(data);
-    })
-    .catch(err => {
-      res
-      .status(500)
-      .json({ error: err.message });
-    });
+      .then(data => {
+        res.json(data);
+      })
+      .catch(err => {
+        res
+          .status(500)
+          .json({ error: err.message });
+      });
   });
 
   // GET user profile
@@ -135,14 +142,14 @@ module.exports = (db) => {
 
     db.addUser(user)
       .then(data => {
-        res.json(data)
+        res.json(data);
       })
       .catch(err => {
         res
           .status(500)
           .json({ error: err.message });
       });
-  })
+  });
 
   // POST update a profile's bio column
   router.post("/profile/updateBio", (req, res) => {
@@ -153,14 +160,14 @@ module.exports = (db) => {
 
     db.updateProfileBio(user)
       .then(data => {
-        res.json(data)
+        res.json(data);
       })
       .catch(err => {
         res
           .status(500)
           .json({ error: err.message });
       });
-  })
+  });
 
   // POST update a profile's avatar URI column
   router.post("/profile/updateAvatar", (req, res) => {
@@ -171,24 +178,24 @@ module.exports = (db) => {
 
     db.updateProfileAvatarUri(user)
       .then(data => {
-        res.json(data)
+        res.json(data);
       })
       .catch(err => {
         res
           .status(500)
           .json({ error: err.message });
       });
-  })
+  });
 
   // POST add a profile for a created user
   router.post("/profile", (req, res) => {
-    console.log("from /users/profile ==> user_id:", typeof req.body.user_id)
+    console.log("from /users/profile ==> user_id:", typeof req.body.user_id);
     let profile = {
       user_id: req.body.user_id,
       bio: req.body.bio,
       avatar_uri: req.body.avatar_uri
     };
-    console.log(profile)
+    console.log(profile);
 
     db.addProfile(profile)
       .then(data => {
@@ -286,4 +293,4 @@ module.exports = (db) => {
 
 
   return router;
-}
+};

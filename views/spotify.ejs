@@ -1,0 +1,19 @@
+<script type="text/javascript">
+  const getHashParams = () => {
+    const hashParams = {};
+    var e, r = /([^&;=]+)=?([^&;]*)/g,
+      q = window.location.hash.substring(1);
+    while (e = r.exec(q)) {
+      hashParams[e[1]] = decodeURIComponent(e[2]);
+    }
+    return hashParams;
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    if (window.location.hash) {
+      hashParams = getHashParams();
+      sessionStorage.setItem('spotify_token', hashParams.access_token)
+      window.location.assign('/map');
+    }
+  });
+</script>
