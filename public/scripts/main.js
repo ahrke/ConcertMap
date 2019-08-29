@@ -5,6 +5,24 @@ let map;
 let artists = {};
 let hashParams = {};
 
+let icons = [];
+icons.push('<i class="fas fa-bread-slice"></i>');
+icons.push('<i class="fas fa-bone"></i>');
+icons.push('<i class="fas fa-bacon"></i>');
+icons.push('<i class="fas fa-cookie"></i>');
+icons.push('<i class="fas fa-hamburger"></i>');
+icons.push('<i class="fas fa-atom"></i>');
+icons.push('<i class="fas fa-brain"></i>');
+icons.push('<i class="fas fa-burn"></i>');
+icons.push('<i class="fas fa-fire"></i>');
+icons.push('<i class="fas fa-guitar"></i>');
+icons.push('<i class="fas fa-drum"></i>');
+icons.push('<i class="fas fa-baby-carriage"></i>');
+
+const getRandomIcon = () => {
+  return icons[Math.floor(Math.random() * icons.length)]
+}
+
 const onGMapLoad = async () => {
   // const { coords } = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res));
   window.map = map;
@@ -77,9 +95,10 @@ const getListNode = (event) => {
   const formatTime = (m) => m.getUTCHours() + m.getUTCMinutes() + m.getUTCSeconds() === 0 ? '' : ' ' + [m.getUTCHours(), m.getUTCMinutes(), m.getUTCSeconds()].join(':');
   const formatDate = (m) => [m.getUTCFullYear(), m.getUTCMonth(), m.getUTCDate()].join('/') + formatTime(m);
   const wrapper = document.createElement('div');
+  // <img src='${event.image640 ? event.image640 : '#'}'>
   wrapper.innerHTML =
     `<li data-event-id="${event.concert_id}">
-        <img src='${event.image640 ? event.image640 : '#'}'>
+        ${getRandomIcon()}
         <p class='detail'>
           <span class='title'>${event.name.split('(')[0]}</span>
           <time><span class='date'>${formatDate(new Date(event.start_date))}</span></time>

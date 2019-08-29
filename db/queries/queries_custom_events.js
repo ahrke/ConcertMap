@@ -20,9 +20,8 @@ const getCustomEvents = function() {
       }
       let customEvents = res.rows;
       const fillEvents = async (events) => {
-        for (let event of events) {
-          let currEvent = await getCustomEventInfo(event.id);
-          event = currEvent;
+        for (let i in events) {
+          events[i] = await getCustomEventInfo(events[i].id);
         }
 
         resolve(customEvents)

@@ -1,9 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const bcrypt = require('bcrypt');
 const { GOOGLE_API_KEY } = require('../config');
-
-let saltRounds = 10;
 
 module.exports = (db) => {
 
@@ -127,57 +124,6 @@ module.exports = (db) => {
     }
   });
 
-
-
-  // POST user login
-  router.post("/login", (req, res) => {
-    // if (req.session.user_id) {
-    //   res.redirect('/users/' + req.session.user_id);
-    // }
-
-    let user = {
-      email: req.body.email,
-      password: req.body.password
-    }
-
-    db.getUserWithEmail(user.email)
-      .then(data => {
-        bcrypt.compare(user.password, data.password, function(fail, succ) {
-          if (succ) {
-            req.session.user_id = data.id;
-            res.redirect('/users/')
-          } else {
-            console.log("invalid login", fail);
-            req.session = null;
-            res.redirect('/login');
-          }
-        });
-      });
-  });
-
-  // POST create a new user
-  router.post("/new", (req, res) => {
-    bcrypt.hash(req.body.password, saltRounds, function(err, hash) {
-      let user = {
-        name: req.body.name,
-        email: req.body.email,
-        password: hash
-      };
-
-      console.log("from bcrypt, hash:", hash)
-
-      db.addUser(user)
-        .then(data => {
-          res.json(data)
-        })
-        .catch(err => {
-          res
-            .status(500)
-            .json({ error: err.message });
-        });
-    });
-  })
-
   // POST update a profile's bio column
   router.post("/profile/updateBio", (req, res) => {
     if (req.session.user_id) {
@@ -222,27 +168,6 @@ module.exports = (db) => {
     } else {
       res.redirect('/login');
     }
-  })
-
-  // POST add a profile for a created user
-  router.post("/profile", (req, res) => {
-
-    let profile = {
-      user_id: req.body.user_id,
-      bio: req.body.bio,
-      avatar_uri: req.body.avatar_uri
-    };
-    console.log(profile)
-
-    db.addProfile(profile)
-      .then(data => {
-        res.json(data);
-      })
-      .catch(err => {
-        res
-          .status(500)
-          .json({ error: err.message });
-      });
   });
 
 

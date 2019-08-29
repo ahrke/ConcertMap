@@ -1,0 +1,71 @@
+@import 'variables';
+
+*, *:after, *:before {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  color: $font-bright;
+  background-color: $color-1;
+}
+
+.container {
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Raleway';
+  color: $font-bright;
+  height: 100%;
+  width: 100%;
+
+  h2 {
+    margin: 20px;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  input, button {
+    margin: 20px;
+    width: 30vw;
+    height: 40px;
+  }
+
+  button {
+    border: none;
+    color: $font-bright;
+    background-color: $color-4;
+  }
+
+  a {
+    margin: 25px;
+    font-size: 1.2rem;
+    color: $color-5;
+  }
+}
+
+@media only screen and (max-width: 789px) {
+  .container {
+    input, button {
+      margin: 20px;
+      width: 70vw;
+      height: 40px;
+    }
+
+    button {
+      border: none;
+      color: $font-bright;
+      background-color: $color-4;
+    }
+  }
+}
