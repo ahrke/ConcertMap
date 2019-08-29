@@ -2,12 +2,11 @@ import { LinkedMarkerMap, MarkerInfoWindow } from './map.js';
 import { registerNewEventPopup } from './popup.js';
 
 let map;
-let artists = {};
-let hashParams = {};
+const artists = {};
+let events;
 
 const onGMapLoad = async () => {
   // const { coords } = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res));
-  window.map = map;
   map = new LinkedMarkerMap(document.querySelector('.gmap-container'), {
     // center: { lat: coords.latitude, lng: coords.longitude },
     center: { lat: 43.661539, lng: -79.411079 },
@@ -15,10 +14,12 @@ const onGMapLoad = async () => {
   });
 
   map.addListener('markerselect', (marker) => {
+    console.log('Marker Selected', marker.listNode);
     marker.listNode.classList.add('selected');
   });
 
   map.addListener('markerdeselect', (marker) => {
+    console.log('Marker DEselected', marker.listNode);
     marker.listNode.classList.remove('selected');
   });
 
@@ -27,14 +28,16 @@ const onGMapLoad = async () => {
   });
 
   map.addListener('markermouseover', (marker, data) => {
-    if (!map.selectedMarker) {
+    const isPopupEnabled = document.querySelector('.content .main .popup').classList.contains('enabled');
+    if (!isPopupEnabled && !map.selectedMarker) {
       map.selectMarker(marker);
       marker.listNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   });
 
   map.addListener('markermouseout', (marker, data) => {
-    if (map.selectedMarker) {
+    const isPopupEnabled = document.querySelector('.content .main .popup').classList.contains('enabled');
+    if (!isPopupEnabled && map.selectedMarker) {
       map.selectMarker(null);
     }
   });
@@ -49,28 +52,14 @@ const onGMapLoad = async () => {
 
   registerNewEventPopup(map);
 
-  // Initialize data
-  $(document).ready(() => {
-    const initializeAsync = async () => {
-      document.querySelector('.popup .close-btn').addEventListener('click', function(evt) {
-        this.closest('.popup').classList.remove('enabled');
-      });
+  events = window.embededData; // Replace with AJAX
 
-      window.embededData.splice(25); // @TODO ONLY FOR TESTING UNTIL SPOTIFY API IS FIXED
-
-      renderMarkers(window.embededData);
-
-      const spotifyToken = sessionStorage.getItem('spotify_token');
-      const collection = window.embededData
-        .map(event => {
-          const artists = event.artists.map(artist => artist.name);
-          return { id: event.concert_id, artists };
-        });
-      artists = await getArtistsInfo(collection, spotifyToken);
-    };
-
-    initializeAsync();
+  document.querySelector('.popup .close-btn').addEventListener('click', function(evt) {
+    this.closest('.popup').classList.remove('enabled');
+    map.selectMarker(null);
   });
+
+  renderMarkers(events);
 };
 
 const getListNode = (event) => {
@@ -91,6 +80,25 @@ const getListNode = (event) => {
 };
 
 const registerListNode = (...listNodes) => {
+  const onListMouseEnter = function(evt) {
+    const isPopupEnabled = document.querySelector('.content .main .popup').classList.contains('enabled');
+    if (!isPopupEnabled) map.selectMarker(this.marker);
+  };
+
+  const onListMouseOut = function(evt) {
+    const isPopupEnabled = document.querySelector('.content .main .popup').classList.contains('enabled');
+    if (!isPopupEnabled) map.selectMarker(null);
+  };
+
+  const onListLocate = function(evt) {
+    const isPopupEnabled = document.querySelector('.content .main .popup').classList.contains('enabled');
+    if (isPopupEnabled) return;
+    evt.stopPropagation();
+    const listNode = evt.target.closest('li');
+    map.setCenter(listNode.marker.position);
+    map.selectMarker(listNode.marker);
+  };
+
   const containerNode = document.querySelector('.nav-list');
   for (let listNode of listNodes) {
     listNode.addEventListener('mouseenter', onListMouseEnter);
@@ -117,86 +125,59 @@ const renderMarkers = (eventsRes) => {
   registerListNode(...listNodes);
 };
 
-const onListMouseEnter = function(evt) {
-  map.selectMarker(this.marker);
-};
-
-const onListMouseOut = function(evt) {
-  map.selectMarker(null);
-};
-
-const onListLocate = function(evt) {
-  evt.stopPropagation();
-  const listNode = evt.target.closest('li');
-  map.setCenter(listNode.marker.position);
-  map.selectMarker(listNode.marker);
-};
-
-const getArtistsInfo = async (artists, access_token) => {
-  let artistsCollection = {};
-
-  for (let a of artists) {
-
-    let venueArtists = [];
-
-    for (let artist of a.artists) {
-      let aObj = {};
-
-      // Search for artist in spotify database
-      let artistInfo = await $.ajax({
-        url: "https://api.spotify.com/v1/search?q=" + artist + "&type=artist",
-        type: "GET",
-        headers: {
-          "Authorization": "Bearer " + access_token
-        }
-      })
-
-      // Create an object to hold artist information
-      if (artistInfo.artists.items.length === 0) {
-        continue;
-      }
-      let a = artistInfo.artists.items[0];
-      aObj.name = a.name || 0;
-      aObj.href = a.href || 0;
-      aObj.id = a.id || 0;
-      if (a.images[0]) {
-        aObj.image640 = a.images[0].url;
-      }
-
-      let albumUrl = `https://api.spotify.com/v1/artists/${a.id}/albums?market=ES&limit=2`
-      let albumInfo = await $.ajax({
-        url: albumUrl,
-        type: "GET",
-        headers: {
-          "Authorization": "Bearer " + access_token
-        }
-      })
-
-      aObj.iframeUrl = `https://open.spotify.com/embed/album/${albumInfo.items[0].id}`
-
-      venueArtists.push(aObj);
-    }
-    artistsCollection[a.id] = venueArtists;
+const showArtist = async (concertId) => {
+  try {
+    const sampleArtistName = events.find(evt => evt.concert_id === concertId).artists[0].name;
+    const artist = await getArtistInfo(sampleArtistName);
+    const popupNode = document.querySelector('.content .main .popup');
+    const artistNode = popupNode.querySelector('.artist-area');
+    artistNode.innerHTML =
+      `<div class="artist">
+        <img src="${artist.image640 ? artist.image640 : '#'}"/>
+        <h1 class='name'>${artist.name}</h1>
+        <iframe class="player" src="${artist.iframeUrl}" width="300" height="600" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+      </div>`;
+    popupNode.classList.add('enabled');
+    const eventListNode = document.querySelector(`[data-event-id="${concertId}"]`);
+    map.selectMarker(eventListNode.marker);
+  } catch (err) {
+    console.log(err.message);
   }
-
-  return artistsCollection;
-};
-
-const artistDisplay = (artist, containerNode) => {
-  containerNode.innerHTML =
-    `<div class="artist">
-      <img src="${artist.image640 ? artist.image640 : '#'}"/>
-      <h1 class='name'>${artist.name}</h1>
-      <iframe class="player" src="${artist.iframeUrl}" width="300" height="600" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
-    </div>`;
-};
-
-const showArtist = (id) => {
-  if (!artists[id]) return;
-  const popupNode = document.querySelector('.content .main .popup');
-  popupNode.classList.add('enabled');
-  artistDisplay(artists[id][0], popupNode.querySelector('.artist-area'));
 }
+
+const getArtistInfo = async (name) => {
+  if (artists.hasOwnProperty(name)) return artists[name];
+
+  let spotifyRes;
+  const accessToken = sessionStorage.getItem('spotify_token');
+  const headers = new Headers({ 'Authorization': `Bearer ${accessToken}` });
+  // Search for artist in spotify database
+  spotifyRes = await fetch(
+    encodeURI(`https://api.spotify.com/v1/search?q=${name}&type=artist&limit=1`),
+    { method: 'GET', headers }
+  );
+  const artistsRes = (await spotifyRes.json()).artists.items;
+
+  if (artistsRes.length === 0) throw new Error(`Artist "${name}" not found`);
+
+  const artistRes = artistsRes[0];
+
+  spotifyRes = await fetch(
+    `https://api.spotify.com/v1/artists/${artistRes.id}/albums?market=ES&limit=1`,
+    { method: 'GET', headers }
+  );
+  const albumsRes = (await spotifyRes.json()).items;
+
+  if (albumsRes.length === 0) throw new Error(`Artist "${name}" has no album`);
+
+  artistRes.image640 = artistRes.images.length > 0 ? artistRes.images[0].url : null;
+  artistRes.sampleAlbum = albumsRes[0];
+  artistRes.iframeUrl = `https://open.spotify.com/embed/album/${albumsRes[0].id}`
+
+  artists[name] = artistRes;
+
+  return artistRes;
+};
 
 const getVenueDetails = async (query) => {
   service = new google.maps.places.PlacesService(map);
