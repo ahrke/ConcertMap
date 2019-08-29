@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { GOOGLE_API_KEY } = require('../config');
 
 module.exports = (db) => {
 
@@ -49,11 +50,12 @@ module.exports = (db) => {
     });
   });
 
-  // GET all trips in database
+  // GET all user created trips
   router.get("/trips", (req, res) => {
     db.getAllTrips()
     .then(data => {
-      res.json(data);
+      let trips = data;
+      res.render('all_trips',{trips, googleApiKey: GOOGLE_API_KEY});
     })
     .catch(err => {
       res
@@ -61,7 +63,6 @@ module.exports = (db) => {
         .json({ error: err.message });
     });
   });
-
 
 
   return router;

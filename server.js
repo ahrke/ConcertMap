@@ -46,12 +46,14 @@ app.use(express.static("public"));
 const mainRoutes = require('./routes/main');
 const usersRoutes = require('./routes/users');
 const dataRoutes = require('./routes/data');
+const songkickRoutes = require('./routes/songkick');
 
 // Mount all resource routes
 // Note: Feel free to replace the example routes below with your own
 app.use("/users", usersRoutes(database));
 app.use("/", mainRoutes());
 app.use("/", dataRoutes(database));
+app.use("/songkick", songkickRoutes());
 // Note: mount other resources here, using the same pattern above
 
 app.get("/temp_form", (req, res) => {

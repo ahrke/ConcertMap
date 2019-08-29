@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8">
+  <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
+  <title>Home Page</title>
+
+  <link rel="stylesheet" href="/vendor/normalize-4.1.1.css" type="text/css" />
+  <link rel="stylesheet" href="/vendor/border-box.css" type="text/css" />
+  <link rel="stylesheet" href="/styles/main.css" type="text/css" />
+  <link rel="stylesheet" href="/styles/nav.css" type="text/css" />
+  <link rel="stylesheet" href="/styles/artist.css" type="text/css" />
+  <link href="https://fonts.googleapis.com/css?family=Raleway&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <link rel="stylesheet" href="/styles/trips.css" type="text/css" />
+
+  <script type="text/javascript" src="https://kit.fontawesome.com/25262f9bec.js" async></script>
+  <script type="text/javascript" src="/vendor/jquery-3.0.0.js"></script>
+  <script type="text/javascript" src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous" async></script>
+  <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?libraries=places&key=<%=googleApiKey%>"></script>
+  <script type="module" src="/scripts/main.js"></script>
+
+  <script type="text/javascript">
+  </script>
+</head>
+
+<body>
+  <% include partials/__nav %>
+  <div class="content">
+    <ul class="scroll trip-list"></ul>
+    <div class="main">
+      <div class='popup'>
+        <div class="artist-area"></div>
+        <div class="close-btn far fa-window-close"></div>
+      </div>
+      <div class="gmap-container"></div>
+    </div>
+  </div>
+
+  <script>
+    let trips = <%- JSON.stringify(trips) %>;
+
+    let tripList = document.querySelector(".trip-list");
+    for (let trip of trips) {
+      tripList.innerHTML += `
+        <li id='${trip.id}' onclick='populateTrip(this.id)'>
+          ${trip.name}
+        </li>
+      `
+    }
+
+    const populateTrip = (trip_id) => {
+      $.ajax({
+        url: '/trips/' + trip_id
+      })
+      .done(res => {
+        console.log("response from populateTrip with trip_id ",trip_id,"returned with: ", res);
+        let events = {};
+        for (let stop of res) {
+          $.ajax({
+            url: '/songkick/event/' + stop.event_id
+          })
+            .done(data => {
+              console.log("==>",data);
+            })
+            .fail(err => {
+              console.log("erroors",err)
+            })
+        }
+      })
+      .fail(err => {
+        console.log("error fetching trip info:",err);
+      })
+    }
+  </script>
+</body>
+
+</html>
