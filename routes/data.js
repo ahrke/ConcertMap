@@ -92,19 +92,23 @@ module.exports = (db) => {
 
   // GET every user's created trips
   router.get("/trips", (req, res) => {
-    db.getAllTrips()
-    .then(data => {
-      let trips = data;
-      let user = {
-        user_id: req.session.user_id || null
-      }
-      res.render('all_trips',{user, trips, googleApiKey: GOOGLE_API_KEY});
-    })
-    .catch(err => {
-      res
-      .status(500)
-        .json({ error: err.message });
-    });
+    if (req.session.user_id) {
+      db.getAllTrips()
+      .then(data => {
+        let trips = data;
+        let user = {
+          user_id: req.session.user_id || null
+        }
+        res.render('all_trips',{user, trips, googleApiKey: GOOGLE_API_KEY});
+      })
+      .catch(err => {
+        res
+        .status(500)
+          .json({ error: err.message });
+      });
+    } else {
+      res.redirect('/login');
+    }
   });
 
 

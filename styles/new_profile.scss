@@ -1,0 +1,75 @@
+@import 'variables';
+
+*, *:after, *:before {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  color: $font-bright;
+  background-color: $color-5;
+}
+
+.container {
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Raleway';
+  color: $font-bright;
+  height: 100%;
+  width: 100%;
+
+  h2 {
+    margin: 20px;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  input, button, textarea {
+    border-radius: 5px;
+    padding: 10px;
+    border: none;
+    margin: 20px;
+    width: 30vw;
+    height: 40px;
+  }
+
+  textarea {
+    height: 120px;
+
+    &::-webkit-scrollbar {
+      width: 0;
+    }
+  }
+
+  button {
+    border: none;
+    color: $font-bright;
+    background-color: $color-3;
+  }
+
+}
+
+@media only screen and (max-width: 789px) {
+  .container {
+    input, button, textarea {
+      width: 70vw;
+    }
+
+    button {
+      border: none;
+      color: $font-bright;
+      background-color: $color-1;
+    }
+  }
+}
