@@ -1,4 +1,5 @@
 import { MarkerInfoWindow } from './map.js';
+import { postObj } from './api.js';
 
 function isMobileDevice() {
   return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
@@ -19,15 +20,18 @@ const registerNewEventPopup = (map) => {
       });
 
       // popup save
-      submitBtnNode.addEventListener('click', (evt) => {
+      submitBtnNode.addEventListener('click', async(evt) => {
         const data = {};
-        containerNode.querySelectorAll('input[type="text"], textarea').forEach(n => {
+        containerNode.querySelectorAll('input[type="text"], input[type="date"], textarea').forEach(n => {
           data[n.getAttribute('name')] = n.value;
         });
-        console.log(data);
+        const pos = marker.getPosition();
+        data.latlng = [pos.lat(), pos.lng()];
         map.registerMarker(marker, data);
         map.setCustomMarkers(true);
         prompt.close();
+        console.log(data);
+        await postObj('/users/customEvent', data);
       });
 
       map.setCustomMarkers(false);

@@ -10,6 +10,9 @@ module.exports = () => {
   router.get('/map', async(req, res) => {
     try {
       const eventsRes = await songkick.getVerifiedEvents(43.645144, -79.503008, '2019-08-30');
+      eventsRes.forEach((event) => {
+        event.id = event.concert_id;
+      });
       res.render("main", { events: eventsRes, googleApiKey: process.env.GOOGLE_API_KEY });
     } catch (err) {
       console.log("error during spotify:", err);

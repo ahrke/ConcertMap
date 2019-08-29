@@ -45,6 +45,9 @@ module.exports = (db) => {
 
     try {
       const eventsRes = await songkick.getVerifiedEvents(43.661539, -79.411079);
+      eventsRes.forEach((event) => {
+        event.id = event.concert_id;
+      });
       res.render('account', { events: eventsRes, user, googleApiKey: process.env.GOOGLE_API_KEY });
     } catch (err) {
       console.log("error from songkick route: ", err);
@@ -234,12 +237,12 @@ module.exports = (db) => {
   // POST add a new custom event
   router.post("/customEvent", (req, res) => {
     let customEvent = {
-      user_id: req.session.user_id,
+      user_id: req.session.user_id || 1, // REMOVE
       name: req.body.name,
       description: req.body.description,
-      start_date: req.body.start_date,
+      start_date: new Date(req.body.start_date),
       venue: req.body.venue,
-      latlng: req.body.latlng
+      latlng: req.body.latlng.join(', ')
     };
 
     db.addCustomEvent(customEvent)

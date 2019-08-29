@@ -20,7 +20,7 @@ module.exports = (db) => {
           .then(data => {
             let artists = data.map(artist => artist);
             customEvent["artists"] = artists;
-
+            customEvent.id = `c${customEvent.id}`;
             res.json(customEvent)
           })
           .catch(err => {
