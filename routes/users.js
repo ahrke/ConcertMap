@@ -7,6 +7,28 @@ let saltRounds = 10;
 
 module.exports = (db) => {
 
+  // GET user's settings page
+  router.get("/settings", (req, res) => {
+    if (req.session.user_id) {
+      db.getProfile(req.session.user_id)
+        .then(data => {
+          let user = {
+            name: data.name,
+            bio: data.bio,
+            avatar_uri: data.avatar_uri
+          }
+          res.render("user_settings", {user});
+        })
+        .catch(err => {
+          res
+            .status(500)
+            .json({ error: err.message });
+        });
+    } else {
+      res.redirect("/login");
+    }
+  })
+
   // GET user's custom created events
   router.get("/myEvents", (req, res) => {
     db.getUserCustomEvents(req.session.user_id)
@@ -158,38 +180,48 @@ module.exports = (db) => {
 
   // POST update a profile's bio column
   router.post("/profile/updateBio", (req, res) => {
-    let user = {
-      user_id: req.body.user_id,
-      bio: req.body.bio
-    };
+    if (req.session.user_id) {
+      let user = {
+        user_id: req.session.user_id,
+        bio: req.body.bio
+      };
 
-    db.updateProfileBio(user)
-      .then(data => {
-        res.json(data)
-      })
-      .catch(err => {
-        res
-          .status(500)
-          .json({ error: err.message });
-      });
+      db.updateProfileBio(user)
+        .then(data => {
+          let user = data;
+          res.redirect('/settings', {user})
+        })
+        .catch(err => {
+          res
+            .status(500)
+            .json({ error: err.message });
+        });
+    } else {
+      res.redirect('/login');
+    }
   })
 
   // POST update a profile's avatar URI column
   router.post("/profile/updateAvatar", (req, res) => {
-    let user = {
-      user_id: req.body.user_id,
-      avatar_uri: req.body.avatar_uri
-    };
+    if (req.session.user_id) {
+      let user = {
+        user_id: req.session.user_id,
+        avatar_uri: req.body.avatar_uri
+      };
 
-    db.updateProfileAvatarUri(user)
-      .then(data => {
-        res.json(data)
-      })
-      .catch(err => {
-        res
-          .status(500)
-          .json({ error: err.message });
-      });
+      db.updateProfileAvatarUri(user)
+        .then(data => {
+          let user = data;
+          res.redirect('/settings', {user})
+        })
+        .catch(err => {
+          res
+            .status(500)
+            .json({ error: err.message });
+        });
+    } else {
+      res.redirect('/login');
+    }
   })
 
   // POST add a profile for a created user
