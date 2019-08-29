@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const songkick = require('../api/songkick');
+const db = require('../db/database');
 
 module.exports = () => {
   router.get('/api/spotify', (req, res) => {
@@ -13,7 +14,8 @@ module.exports = () => {
       eventsRes.forEach((event) => {
         event.id = event.concert_id;
       });
-      res.render("main", { events: eventsRes, googleApiKey: process.env.GOOGLE_API_KEY });
+      const cusEventsRes = await db.getCustomEvents();
+      res.render("main", { events: [...cusEventsRes, ...eventsRes], googleApiKey: process.env.GOOGLE_API_KEY });
     } catch (err) {
       console.log("error during spotify:", err);
     }

@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { GOOGLE_API_KEY } = require('../config');
 
 module.exports = (db) => {
 
@@ -36,6 +37,45 @@ module.exports = (db) => {
       });
   });
 
+  // GET all current user's created trips
+  router.get("/trips/my", (req, res) => {
+    if (req.session.user_id) {
+      let id = req.session.user_id;
+      let userCreatedTripsPromise = db.getUserCreatedTrips(id);
+      let userFavouritedTrips = db.getUserFavouritedTrips(id);
+      Promise.all([userCreatedTripsPromise, userFavouritedTrips])
+        .then(data => {
+          console.log("==>results from trips/my:",data)
+          let user = {
+            user_id: id
+          }
+          let trips = [];
+          for (let d of data) {
+            for (let dd of d) {
+              dd.heart = false;
+              dd.user_id = id;
+              trips.push(dd)
+            }
+          }
+          res.render('all_trips',{user, trips, googleApiKey: GOOGLE_API_KEY});
+        })
+        .catch(err => {
+          console.log("error trying to get all user created and fav trips. err:",err)
+        })
+      // db.getUserCreatedTrips(id)
+      // .then(data => {
+
+      // })
+      // .catch(err => {
+      //   res
+      //   .status(500)
+      //     .json({ error: err.message });
+      // });
+    } else {
+      res.redirect('/login');
+    }
+  });
+
   // GET a trip's data (all stops)
   router.get("/trips/:trip_id", (req, res) => {
     db.getTripData(req.params.trip_id)
@@ -49,11 +89,16 @@ module.exports = (db) => {
     });
   });
 
-  // GET all trips in database
+
+  // GET every user's created trips
   router.get("/trips", (req, res) => {
     db.getAllTrips()
     .then(data => {
-      res.json(data);
+      let trips = data;
+      let user = {
+        user_id: req.session.user_id || null
+      }
+      res.render('all_trips',{user, trips, googleApiKey: GOOGLE_API_KEY});
     })
     .catch(err => {
       res
@@ -61,7 +106,6 @@ module.exports = (db) => {
         .json({ error: err.message });
     });
   });
-
 
 
   return router;

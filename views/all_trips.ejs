@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8">
+  <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
+  <title>Home Page</title>
+
+  <link rel="stylesheet" href="/vendor/normalize-4.1.1.css" type="text/css" />
+  <link rel="stylesheet" href="/vendor/border-box.css" type="text/css" />
+  <link rel="stylesheet" href="/styles/main.css" type="text/css" />
+  <link rel="stylesheet" href="/styles/nav.css" type="text/css" />
+  <link rel="stylesheet" href="/styles/artist.css" type="text/css" />
+  <link href="https://fonts.googleapis.com/css?family=Raleway&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <link rel="stylesheet" href="/styles/trips.css" type="text/css" />
+
+  <script type="text/javascript" src="https://kit.fontawesome.com/25262f9bec.js" async></script>
+  <script type="text/javascript" src="/vendor/jquery-3.0.0.js"></script>
+  <script type="text/javascript" src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous" async></script>
+  <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?libraries=places&key=<%=googleApiKey%>"></script>
+  <script type="module" src="/scripts/map.js"></script>
+
+  <script type="text/javascript">
+  </script>
+</head>
+
+<body>
+  <% include partials/__nav %>
+  <div class="content">
+    <ul class="scroll trip-list"></ul>
+    <div class="main">
+      <div class='popup'>
+        <div class="artist-area"></div>
+        <div class="close-btn far fa-window-close"></div>
+      </div>
+      <div class="gmap-container"></div>
+    </div>
+  </div>
+
+  <div class="nav-list"></div>
+
+  <script type="module">
+    import { LinkedMarkerMap } from '/scripts/map.js';
+    const renderMarkers = (eventsRes) => {
+      for (let marker of map.markers) {
+        marker.setMap(null);
+      }
+
+      console.log("==> from renderMarkers, eventsRes:",eventsRes)
+      eventsRes.splice(50);
+      for (let eventRes of eventsRes) {
+        console.log("inside eventsRes, eventRes:",eventRes)
+        if (eventRes.latlng) {
+          const marker = map.getNewMarker(eventRes.latlng[0], eventRes.latlng[1]);
+          map.registerMarker(marker);
+        }
+      }
+    };
+
+    let map;
+    const favouriteTrip = window.favouriteTrip = (trip_id) => {
+      console.log("==> favourite trip called")
+      $.ajax({
+        url: '/users/tag',
+        type: 'POST',
+        data: {
+          user_id: user_id,
+          event_id: null,
+          trip_id: trip_id,
+          cus_event_id: null,
+          label: 'fav'
+        }
+      })
+        .done(res => {
+          console.log("from favourite trip:",res);
+        })
+        .fail(err => {
+          console.log("error trying to favourite:",err);
+        })
+    }
+
+    let trips = <%- JSON.stringify(trips) %>;
+    let user_id = <%- user.user_id %>;
+    console.log(user_id)
+
+    let tripList = document.querySelector(".trip-list");
+
+    if (trips.length === 0) {
+      tripList.innerHTML = `
+        <h3 style="text-align: center; padding: 30px">
+          no trips over here!
+        </h3>
+      `
+    }
+
+    for (let trip of trips) {
+      let i = '';
+      console.log("what is heart?",trip)
+      if (trip.user_id !== user_id && !trip.heart) {
+        i = `<i class="far fa-heart" onclick="favouriteTrip(${trip.id})"></i>`
+      }
+      tripList.innerHTML += `
+        <li id='${trip.id}' onclick='populateTrip(this.id)'>
+          <span>${trip.name}</span>
+          ${i}
+        </li>
+      `
+    }
+
+    const populateTrip = window.populateTrip = (trip_id) => {
+      $.ajax({
+        url: '/trips/' + trip_id
+      })
+      .done(res => {
+        console.log("response from populateTrip with trip_id ",trip_id,"returned with: ", res);
+
+
+        const fillEvents = async () => {
+          let events = [];
+
+          for (let stop of res) {
+            await $.get({
+              url: '/songkick/event/' + stop.event_id
+            })
+              .done(data => {
+                let eventRes = JSON.parse(data).resultsPage.results.event;
+                const artists = eventRes.performance.map(perf => {
+                  return { 'name': perf.artist.displayName, 'songkick_uri': perf.artist.uri };
+                });
+                const event = {
+                  'concert_id': eventRes.id,
+                  'songkick_uri': eventRes.uri,
+                  'name': eventRes.displayName,
+                  'start_date': (new Date(eventRes.start.datetime ? eventRes.start.datetime : eventRes.start.date)).getTime(),
+                  'artists': artists,
+                  'venue': eventRes.venue.displayName,
+                  'latlng': [eventRes.venue.lat || eventRes.location.lat, eventRes.venue.lng || eventRes.location.lng]
+                };
+                events.push(event);
+              })
+              .fail(err => {
+                console.log("erroors",err)
+              })
+            }
+            renderMarkers(events);
+
+        }
+
+        fillEvents();
+
+      })
+      .fail(err => {
+        console.log("error fetching trip info:",err);
+      })
+    }
+
+    const onGMapLoad = () => {
+      map = new LinkedMarkerMap(document.querySelector('.gmap-container'), {
+        center: { lat: 43.661539, lng: -79.411079 },
+        zoom: 14
+      });
+      map.setCustomMarkers(false);
+    };
+
+    $(document).ready(() => {
+      google.maps.event.addDomListener(window, 'load', onGMapLoad);
+    });
+  </script>
+</body>
+
+</html>

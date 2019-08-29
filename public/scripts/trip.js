@@ -75,8 +75,10 @@ const onGMapLoad = async () => {
 };
 
 const renderMarkers = (eventsRes) => {
+  console.log("==> from renderMarkers, eventsRes:",eventsRes)
   eventsRes.splice(50);
   for (let eventRes of eventsRes) {
+    console.log("inside eventsRes, eventRes:",eventRes)
     if (eventRes.latlng) {
       const marker = map.getNewMarker(eventRes.latlng[0], eventRes.latlng[1]);
       map.registerMarker(marker);

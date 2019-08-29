@@ -7,6 +7,15 @@ const distance = (loc1, loc2) => getPreciseDistance(loc1, loc2);
 
 const cache = {};
 
+// Get specific event information
+const getEventInfo = async (eventId) => {
+  const url = `https://api.songkick.com/api/3.0/events/${eventId}.json?apikey=${SONGKICK_API_KEY}`;
+  if (cache.hasOwnProperty(url)) return cache[url];
+  const res = await request(url);
+  cache[url] = res;
+  return res;
+}
+
 // We call songkick to request the metroId of a certain city
 const getMetroIdsRequest = async(loc) => {
   const url = `https://api.songkick.com/api/3.0/search/locations.json?location=geo:${loc.lat},${loc.lng}&apikey=${SONGKICK_API_KEY}`;
@@ -81,4 +90,7 @@ const getVerifiedEvents = async(lat, lng) => {
 
 // getConcerts(43.645144, -79.403008,'2019-08-25').then(res => console.log(res))
 
-module.exports = { getVerifiedEvents };
+module.exports = {
+  getVerifiedEvents,
+  getEventInfo
+};

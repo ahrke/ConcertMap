@@ -1,0 +1,74 @@
+@import 'variables';
+
+*, *:after, *:before {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  color: $font-bright;
+  background-color: $color-1;
+  font-family: 'Raleway';
+  text-align: center;
+}
+
+.main {
+  padding: 5% 20%;
+
+  hr {
+    background-color: $font-bright;
+    margin: 30px;
+  }
+
+  img {
+    flex: 2;
+    width: 100%;
+    padding: 30px;
+  }
+
+  h1 {
+    flex: 1;
+    margin: 30px
+  }
+
+  p {
+    flex: 3;
+    margin-top: 50px;
+  }
+
+  i {
+    margin: 25px;
+  }
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+button {
+  background-color: $color-4;
+  color: $font-bright;
+  padding: 10px;
+  border: none;
+}
+
+.avatar {
+  input {
+    height: 60px;
+  }
+}
+
+.bio {
+  textarea {
+    height: 300px;
+  }
+}
