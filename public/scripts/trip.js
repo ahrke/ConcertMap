@@ -1,4 +1,5 @@
-import { LinkedMarkerMap } from './map.js';
+import { LinkedMarkerMap, MarkerInfoWindow } from './map.js';
+import { registerNewEventPopup } from './popup.js';
 
 const markerHist = [];
 let map;
@@ -13,16 +14,48 @@ const onGMapLoad = async () => {
     zoom: 14
   });
 
-  map.addListener('markerclick', (marker, data) => {
-    const editorContent = `<textarea class="stop-editor"></textarea><button type="button">Save</button>`;
+  const removeFromLink = (marker) => {
+    if (marker === markerRoot) {
+      markerRoot = marker.prev;
+      map.selectMarker(markerRoot);
+    }
+    map.removeMarkerLink(marker);
+  };
 
-    const listHasMarker = (n) => {
-      if (!n) return false;
-      if (n === marker) return true;
-      return listHasMarker(n.prev);
+
+  map.addListener('markerregister', (marker, data) => {
+    marker.infoWindow.addListener('markerclick', (marker, containerNode, closeBtnNode) => {
+      closeBtnNode.addEventListener('click', (evt) => {
+        removeFromLink(marker);
+      });
+    });
+  });
+
+  map.addListener('markerclick', (marker, data) => {
+    if (map.isMarkerLinked(marker)) return;
+    const onPopupLoad = (marker, containerNode, closeBtnNode) => {
+      const submitBtnNode = containerNode.querySelector('button');
+
+      // popup discard
+      closeBtnNode.addEventListener('click', (evt) => {
+        prompt.close();
+        removeFromLink(marker);
+      });
+
+      // popup save
+      submitBtnNode.addEventListener('click', (evt) => {
+        const data = containerNode.querySelector('textarea').value;
+        prompt.close();
+        marker.infoWindow.open(data);
+      });
     };
 
-    if (listHasMarker(markerRoot)) return;
+    const addStopPopup = `<textarea class="stop-editor"></textarea><button type="button">Save</button>`;
+    const prompt = new MarkerInfoWindow(marker);
+    prompt.setClosable(true);
+    prompt.addListener('markerclick', onPopupLoad);
+    prompt.open(addStopPopup);
+
     if (!markerRoot) markerRoot = marker;
 
     if (markerRoot !== marker) {
@@ -30,44 +63,9 @@ const onGMapLoad = async () => {
       markerRoot = marker;
     }
     map.selectMarker(markerRoot);
-    markerRoot.infoWindow.open(editorContent);
   });
 
-  map.addListener('markerdrop', (marker) => {
-    const prompt = new MarkerInfoWindow(marker);
-
-    const onPopupLoad = (marker, containerNode, closeBtnNode) => {
-      const submitBtnNode = containerNode.querySelector('.custom-event-popup button');
-
-      // popup discard
-      closeBtnNode.addEventListener('click', (evt) => {
-        map.removeMarker(marker);
-        map.setCustomMarkers(true);
-        prompt.close();
-      });
-
-      // popup save
-      submitBtnNode.addEventListener('click', (evt) => {
-        const data = Array.from(containerNode.querySelectorAll('input[type="text"]')).map(textNode => textNode.value);
-        map.registerMarker(marker, data);
-        map.setCustomMarkers(true);
-        prompt.close();
-      });
-
-      map.setCustomMarkers(false);
-    };
-
-    const customEventPopup =
-      `<table class="custom-event-popup">
-      <tr><td>Who</td><td><input type="text"/></td></tr>
-      <tr><td><label>Where</label></td><td><input type="text"/></td></tr>
-      <tr><td><label>When</label></td><td><input type="text"/></td></tr>
-      <tr><td colspan="2"><button type="button" style="display: block; margin: auto;">Save</button></td></tr>
-    </table>`;
-    prompt.setClosable(true);
-    prompt.addListener('markerclick', onPopupLoad);
-    prompt.open(customEventPopup);
-  });
+  registerNewEventPopup(map);
 
   $(document).ready(() => {
     renderMarkers(window.embededData);
@@ -75,6 +73,7 @@ const onGMapLoad = async () => {
 };
 
 const renderMarkers = (eventsRes) => {
+  eventsRes.splice(50);
   for (let eventRes of eventsRes) {
     if (eventRes.latlng) {
       const marker = map.getNewMarker(eventRes.latlng[0], eventRes.latlng[1]);

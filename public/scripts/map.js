@@ -149,7 +149,6 @@ LinkedMarkerMap.prototype.filterMarker = function(opts) {
 LinkedMarkerMap.prototype.getNewMarker = function(lat, lng, iconPath) {
   iconPath = iconPath ? iconPath : redMarker;
   const marker = new google.maps.Marker({ position: { lat, lng }, map: this, icon: { url: iconPath } });
-  marker.infoWindow = new MarkerInfoWindow(marker);
   return marker;
 };
 
@@ -158,6 +157,7 @@ LinkedMarkerMap.prototype.registerMarker = function(marker, data) {
   marker.addListener('mouseover', evt => google.maps.event.trigger(this, 'markermouseover', marker, data));
   marker.addListener('mouseout', evt => google.maps.event.trigger(this, 'markermouseout', marker, data));
   marker.data = data;
+  marker.infoWindow = new MarkerInfoWindow(marker);
   this.markers.push(marker);
   google.maps.event.trigger(this, 'markerregister', marker, data);
 };
@@ -168,13 +168,22 @@ LinkedMarkerMap.prototype.removeMarker = function(marker) {
       this.markers.splice(i, 1);
     }
   }
-  if (marker.next) {
-    marker.next.prev = marker.prev;
-  }
-  if (marker.prev) {
-    marker.prev.next = marker.next;
-  }
+  this.removeMarkerLink(marker);
   marker.setMap(null);
+};
+
+LinkedMarkerMap.prototype.isMarkerLinked = (marker) => {
+  return marker && (marker.prev || marker.next);
+};
+
+LinkedMarkerMap.prototype.removeMarkerLink = function(marker) {
+  if (marker.nextLine) marker.nextLine.setMap(null);
+  if (marker.prevLine) marker.prevLine.setMap(null);
+  if (marker.next && marker.prev) this.addLink(marker.prev, marker.next);
+  delete marker.nextLine;
+  delete marker.prevLine;
+  delete marker.next;
+  delete marker.prev;
 };
 
 LinkedMarkerMap.prototype.addLink = function(marker1, marker2) {
