@@ -60,8 +60,30 @@
     };
 
     let map;
+    const favouriteTrip = window.favouriteTrip = (trip_id) => {
+      console.log("==> favourite trip called")
+      $.ajax({
+        url: '/users/tag',
+        type: 'POST',
+        data: {
+          user_id: user_id,
+          event_id: null,
+          trip_id: trip_id,
+          cus_event_id: null,
+          label: 'fav'
+        }
+      })
+        .done(res => {
+          console.log("from favourite trip:",res);
+        })
+        .fail(err => {
+          console.log("error trying to favourite:",err);
+        })
+    }
 
     let trips = <%- JSON.stringify(trips) %>;
+    let user_id = <%- user.user_id %>;
+    console.log(user_id)
 
     let tripList = document.querySelector(".trip-list");
 
@@ -74,9 +96,14 @@
     }
 
     for (let trip of trips) {
+      let i = '';
+      if (trip.user_id !== user_id) {
+        i = `<i class="far fa-heart" onclick="favouriteTrip(${trip.id})"></i>`
+      }
       tripList.innerHTML += `
         <li id='${trip.id}' onclick='populateTrip(this.id)'>
-          ${trip.name}
+          <span>${trip.name}</span>
+          ${i}
         </li>
       `
     }

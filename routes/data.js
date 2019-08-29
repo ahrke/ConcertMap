@@ -41,9 +41,11 @@ module.exports = (db) => {
   router.get("/trips/my", (req, res) => {
     if (req.session.user_id) {
       db.getUserCreatedTrips(req.session.user_id)
-      .then(data => {
+      .then(data => {let user = {
+        user_id: req.session.user_id
+      }
         let trips = data;
-        res.render('all_trips',{trips, googleApiKey: GOOGLE_API_KEY});
+        res.render('all_trips',{user, trips, googleApiKey: GOOGLE_API_KEY});
       })
       .catch(err => {
         res
@@ -74,7 +76,10 @@ module.exports = (db) => {
     db.getAllTrips()
     .then(data => {
       let trips = data;
-      res.render('all_trips',{trips, googleApiKey: GOOGLE_API_KEY});
+      let user = {
+        user_id: req.session.user_id || null
+      }
+      res.render('all_trips',{user, trips, googleApiKey: GOOGLE_API_KEY});
     })
     .catch(err => {
       res
