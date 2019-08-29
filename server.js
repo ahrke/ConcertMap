@@ -13,12 +13,20 @@ const morgan = require('morgan');
 const http = require('http');
 const https = require('https');
 const fs = require('fs');
+const cookieSession = require('cookie-session');
+
+const database = require('./db/database');
 
 // PG database client/connection setup
 const { Pool } = require('pg');
 const dbParams = require('./lib/db.js');
 const db = new Pool(dbParams);
 db.connect();
+
+app.use(cookieSession({
+  name: 'session',
+  keys: ['turtle-force=five', 'backgammon']
+}));
 
 // Load the logger first so all (static) HTTP requests are logged to STDOUT
 // 'dev' = Concise output colored by response status for development use.
@@ -37,19 +45,22 @@ app.use(express.static("public"));
 
 // Separated Routes for each Resource
 // Note: Feel free to replace the example routes below with your own
-const usersRoutes = require("./routes/users");
-const widgetsRoutes = require("./routes/widgets");
 const spotifyRoutes = require('./routes/spotify');
 const songkickRoutes = require('./routes/songkick');
-const accountRoutes = require('./routes/accounts');
+const usersRoutes = require('./routes/users');
+const dataRoutes = require('./routes/data');
 
 // Mount all resource routes
 // Note: Feel free to replace the example routes below with your own
 app.use("/api/songkick", songkickRoutes());
-app.use("/accounts", accountRoutes());
+app.use("/users", usersRoutes(database));
 app.use("/api/spotify", spotifyRoutes());
+app.use("/", dataRoutes(database));
 // Note: mount other resources here, using the same pattern above
 
+app.get("/temp_form", (req, res) => {
+  res.render("temp_user_form");
+})
 
 // Home page
 // Warning: avoid creating more routes in this file!
@@ -57,6 +68,7 @@ app.use("/api/spotify", spotifyRoutes());
 app.get("/", (req, res) => {
   res.render("index", {baseURI: process.env.BASE_URI, spotifyApiID: process.env.SPOTIFY_API_ID, googleApiKey: process.env.GOOGLE_API_KEY});
 });
+
 
 (async() => {
   const getListenPromise = (server, ...p) => {

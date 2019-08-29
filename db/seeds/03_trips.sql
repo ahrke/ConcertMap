@@ -1,0 +1,10 @@
+insert into trips (user_id, name) values (1, 'Balanced contextually-based firmware');
+insert into trips (user_id, name) values (2, 'Switchable 6th generation ability');
+insert into trips (user_id, name) values (3, 'Front-line 5th generation software');
+insert into trips (user_id, name) values (4, 'Digitized optimal portal');
+insert into trips (user_id, name) values (5, 'Progressive background flexibility');
+insert into trips (user_id, name) values (6, 'Multi-tiered global focus group');
+insert into trips (user_id, name) values (2, 'Reverse-engineered analyzing product');
+insert into trips (user_id, name) values (7, 'Fully-configurable static knowledge base');
+insert into trips (user_id, name) values (4, 'Phased 3rd generation encryption');
+insert into trips (user_id, name) values (3, 'Right-sized interactive utilisation');

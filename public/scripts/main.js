@@ -195,8 +195,8 @@ const getArtistsInfo = async (artists, access_token) => {
 
 const artistDisplay = (artist, containerNode) => {
   containerNode.innerHTML =
-    `<img src="${artist.image640}"/>
-    <div class="detail">
+    `<div class="detail">
+      <img src="${artist.image640}"/>
       <h1 class='name'>${artist.name}</h1>
       <iframe class="player" src="${artist.iframeUrl}" width="300" height="600" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
     </div>`;
@@ -206,7 +206,7 @@ const showArtist = (id) => {
   if (!artists[id]) return;
   const popupNode = document.querySelector('.content .main .popup');
   popupNode.classList.add('enabled');
-  artistDisplay(artists[id][0], popupNode.querySelector('.artist'));
+  artistDisplay(artists[id][0], popupNode.querySelector('.artist-area'));
 }
 
 const getVenueDetails = async (query) => {

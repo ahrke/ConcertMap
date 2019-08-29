@@ -1,0 +1,9 @@
+insert into custom_events (user_id, name, description, start_date, venue, latlng) values (1, 'Samurai I: Musashi Miyamoto (Miyamoto Musashi)', 'Chauna torquata', '2018-12-20', 'Fulton', '50.98709,45.334');
+insert into custom_events (user_id, name, description, start_date, venue, latlng) values (2, 'Walk in the Clouds, A', 'Canis lupus lycaon', '2018-11-01', 'Clarendon', '-29.2950409,75.0033');
+insert into custom_events (user_id, name, description, start_date, venue, latlng) values (3, 'Cameraman''s Revenge, The (Mest kinematograficheskogo operatora)', 'Bassariscus astutus', '2019-02-25', 'Maywood', '50.66648, -32.442');
+insert into custom_events (user_id, name, description, start_date, venue, latlng) values (4, 'Friend Among Strangers, Stranger Among Friends (Svoy sredi chuzhikh, chuzhoy sredi svoikh)', 'Leptoptilus dubius', '2018-09-07', 'Manitowish', '-3.5508343,12.3331');
+insert into custom_events (user_id, name, description, start_date, venue, latlng) values (5, 'Duel at Diablo', 'Caiman crocodilus', '2019-08-09', 'Clemons', '12.9785941,65.33267');
+insert into custom_events (user_id, name, description, start_date, venue, latlng) values (6, 'Cross of Lorraine, The', 'Phalaropus lobatus', '2019-04-07', 'Brickson Park', '42.5076746,-44.4464');
+insert into custom_events (user_id, name, description, start_date, venue, latlng) values (7, 'Zatoichi', 'Macropus agilis', '2019-01-03', 'Sullivan', '-13.876472,65.7421');
+insert into custom_events (user_id, name, description, start_date, venue, latlng) values (8, 'Sandra of a Thousand Delights (Vaghe stelle dell''Orsa...)', 'Haliaetus leucogaster', '2019-04-10', 'Dexter', '16.3273562,-35.1276');
+insert into custom_events (user_id, name, description, start_date, venue, latlng) values (9, 'Street Fighter II: The Animated Movie (Sutorîto Faitâ II gekijô-ban)', 'Centrocercus urophasianus', '2019-06-20', 'Merrick', '42.4922477,-56.8721');
