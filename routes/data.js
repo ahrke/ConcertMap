@@ -37,6 +37,24 @@ module.exports = (db) => {
       });
   });
 
+  // GET all current user's created trips
+  router.get("/trips/my", (req, res) => {
+    if (req.session.user_id) {
+      db.getUserCreatedTrips(req.session.user_id)
+      .then(data => {
+        let trips = data;
+        res.render('all_trips',{trips, googleApiKey: GOOGLE_API_KEY});
+      })
+      .catch(err => {
+        res
+        .status(500)
+          .json({ error: err.message });
+      });
+    } else {
+      res.redirect('/login');
+    }
+  });
+
   // GET a trip's data (all stops)
   router.get("/trips/:trip_id", (req, res) => {
     db.getTripData(req.params.trip_id)
@@ -50,7 +68,8 @@ module.exports = (db) => {
     });
   });
 
-  // GET all user created trips
+
+  // GET every user's created trips
   router.get("/trips", (req, res) => {
     db.getAllTrips()
     .then(data => {
