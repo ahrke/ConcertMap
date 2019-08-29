@@ -1,5 +1,9 @@
 import { MarkerInfoWindow } from './map.js';
 
+function isMobileDevice() {
+  return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
+};
+
 const registerNewEventPopup = (map) => {
   map.addListener('markerdrop', (marker) => {
     const prompt = new MarkerInfoWindow(marker);
@@ -16,7 +20,11 @@ const registerNewEventPopup = (map) => {
 
       // popup save
       submitBtnNode.addEventListener('click', (evt) => {
-        const data = Array.from(containerNode.querySelectorAll('input[type="text"]')).map(textNode => textNode.value);
+        const data = {};
+        containerNode.querySelectorAll('input[type="text"], textarea').forEach(n => {
+          data[n.getAttribute('name')] = n.value;
+        });
+        console.log(data);
         map.registerMarker(marker, data);
         map.setCustomMarkers(true);
         prompt.close();
@@ -26,16 +34,18 @@ const registerNewEventPopup = (map) => {
     };
 
     const customEventPopup =
-      `<table class="custom-event-popup">
-    <tr><td>Who</td><td><input type="text"/></td></tr>
-    <tr><td><label>Where</label></td><td><input type="text"/></td></tr>
-    <tr><td><label>When</label></td><td><input type="text"/></td></tr>
-    <tr><td colspan="2"><button type="button" style="display: block; margin: auto;">Save</button></td></tr>
-  </table>`;
+      `<div class="custom-event-popup form-group">
+        <input type="text" name="name" class="form-control" placeholder="Event Name" />
+        <input type="text" name="venue" class="form-control" placeholder="Location Name" />
+        <input type="date" name="start_date" class="form-control" />
+        <textarea name="description" class="form-control" placeholder="Description"></textarea>
+        <button type="button" class="form-control btn btn-primary" style="display: block; margin: auto;">Save</button>
+       </div>`;
     prompt.setClosable(true);
     prompt.addListener('markerclick', onPopupLoad);
     prompt.open(customEventPopup);
+    if (isMobileDevice()) map.setCenter(marker.getPosition());
   });
 };
 
-export { registerNewEventPopup };
+export { registerNewEventPopup, isMobileDevice };

@@ -5,26 +5,25 @@ let map;
 const artists = {};
 let events;
 
+
 const onGMapLoad = async () => {
   // const { coords } = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res));
-  map = new LinkedMarkerMap(document.querySelector('.gmap-container'), {
+  window.map = map = new LinkedMarkerMap(document.querySelector('.gmap-container'), {
     // center: { lat: coords.latitude, lng: coords.longitude },
     center: { lat: 43.661539, lng: -79.411079 },
     zoom: 14
   });
 
   map.addListener('markerselect', (marker) => {
-    console.log('Marker Selected', marker.listNode);
     marker.listNode.classList.add('selected');
   });
 
   map.addListener('markerdeselect', (marker) => {
-    console.log('Marker DEselected', marker.listNode);
     marker.listNode.classList.remove('selected');
   });
 
-  map.addListener('markerclick', (marker, data) => {
-    showArtist(data.concert_id);
+  map.addListener('markerclick', (marker, event) => {
+    showArtist(event.id);
   });
 
   map.addListener('markermouseover', (marker, data) => {
@@ -44,7 +43,7 @@ const onGMapLoad = async () => {
 
   map.addListener('markerregister', (marker, data) => {
     if (!marker.listNode) {
-      marker.listNode = getListNode({ concert_id: 0, image640: null, name: data[0], start_date: (new Date()).getTime() });
+      marker.listNode = getListNode(data);
       marker.listNode.marker = marker;
       registerListNode(marker.listNode);
     }
@@ -67,7 +66,7 @@ const getListNode = (event) => {
   const formatDate = (m) => [m.getUTCFullYear(), m.getUTCMonth(), m.getUTCDate()].join('/') + formatTime(m);
   const wrapper = document.createElement('div');
   wrapper.innerHTML =
-    `<li data-event-id="${event.concert_id}">
+    `<li data-event-id="${event.id}">
         <img src='${event.image640 ? event.image640 : '#'}'>
         <p class='detail'>
           <span class='title'>${event.name.split('(')[0]}</span>
@@ -75,7 +74,7 @@ const getListNode = (event) => {
         </p>
         <button class="locate-btn fas fa-map-marker-alt"></button>
     </li>`;
-  wrapper.childNodes[0].addEventListener('click', () => showArtist(event.concert_id));
+  wrapper.childNodes[0].addEventListener('click', () => showArtist(event.id));
   return wrapper.childNodes[0];
 };
 
@@ -125,9 +124,9 @@ const renderMarkers = (eventsRes) => {
   registerListNode(...listNodes);
 };
 
-const showArtist = async (concertId) => {
+const showArtist = async (eventId) => {
   try {
-    const sampleArtistName = events.find(evt => evt.concert_id === concertId).artists[0].name;
+    const sampleArtistName = events.find(evt => evt.id === eventId).artists[0].name;
     const artist = await getArtistInfo(sampleArtistName);
     const popupNode = document.querySelector('.content .main .popup');
     const artistNode = popupNode.querySelector('.artist-area');
@@ -138,7 +137,7 @@ const showArtist = async (concertId) => {
         <iframe class="player" src="${artist.iframeUrl}" width="300" height="600" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
       </div>`;
     popupNode.classList.add('enabled');
-    const eventListNode = document.querySelector(`[data-event-id="${concertId}"]`);
+    const eventListNode = document.querySelector(`[data-event-id="${eventId}"]`);
     map.selectMarker(eventListNode.marker);
   } catch (err) {
     console.log(err.message);

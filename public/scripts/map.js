@@ -46,6 +46,7 @@ const LinkedMarkerMap = function(mapNode, opts) {
   // Event handlers
 
   const dropMarker = (latLng) => {
+    this._mapNode.querySelector('.custom-marker-container').style.removeProperty('opacity');
     // Drop marker on evt.latlng
     const marker = this.getNewMarker(latLng.lat(), latLng.lng(), greenMarker);
     marker.setAnimation(google.maps.Animation.DROP);
@@ -58,9 +59,11 @@ const LinkedMarkerMap = function(mapNode, opts) {
     const newMarkerControl = (() => {
       const wrapper = document.createElement('div');
       wrapper.innerHTML =
-        `<div class="custom-marker-container">
-         <img draggable="true" class="custom-marker-btn" src="https://maps.google.com/mapfiles/ms/icons/red-dot.png"/>
-       </div>`;
+        `<div class="custom-marker-container"
+              style="background: #FFFFFF; width: 40px; height: 40px; margin: 0; padding: 0; margin-right: 10px; cursor: url('https://maps.gstatic.com/mapfiles/openhand_8_8.cur'), default;">
+            <img draggable="true" class="custom-marker-btn" src="${greenMarker}"
+              style="display: inline-block; width: 100%; height: 100%; padding: 3px;" />
+          </div>`;
       return wrapper.childNodes[0];
     })();
 
@@ -77,8 +80,12 @@ const LinkedMarkerMap = function(mapNode, opts) {
       evt.preventDefault();
     });
 
-    newMarkerControl.querySelector('.custom-marker-btn').addEventListener('dragend', function(evt) {
+    const newMarkerIconBtn = newMarkerControl.querySelector('.custom-marker-btn');
+    newMarkerIconBtn.addEventListener('dragend', function(evt) {
       dropMarkerDate = +new Date;
+    });
+    newMarkerIconBtn.addEventListener('dragstart', function(evt) {
+      newMarkerControl.style.setProperty('opacity', '0');
     });
 
     this.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(newMarkerControl);
@@ -122,6 +129,13 @@ LinkedMarkerMap.prototype.setCustomMarkers = function(isAllowed) {
     if (newMarkerControl) newMarkerControl.style.removeProperty('visibility');
   }
 };
+
+LinkedMarkerMap.prototype.clear = function() {
+  for (let marker of this.markers) {
+    if (marker.infoWindow) marker.infoWindow.close();
+    marker.setMap(null);
+  }
+}
 
 LinkedMarkerMap.prototype.selectMarker = function(marker) {
   if (marker === this.selectedMarker) return;

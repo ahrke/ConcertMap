@@ -1,5 +1,5 @@
 import { LinkedMarkerMap, MarkerInfoWindow } from './map.js';
-import { registerNewEventPopup } from './popup.js';
+import { registerNewEventPopup, isMobileDevice } from './popup.js';
 
 const markerHist = [];
 let map;
@@ -47,6 +47,7 @@ const onGMapLoad = async () => {
         const data = containerNode.querySelector('textarea').value;
         prompt.close();
         marker.infoWindow.open(data);
+        if (isMobileDevice()) map.setCenter(marker.getPosition());
       });
     };
 
@@ -55,6 +56,7 @@ const onGMapLoad = async () => {
     prompt.setClosable(true);
     prompt.addListener('markerclick', onPopupLoad);
     prompt.open(addStopPopup);
+    if (isMobileDevice()) map.setCenter(marker.getPosition());
 
     if (!markerRoot) markerRoot = marker;
 
