@@ -1,6 +1,7 @@
 DROP TABLE IF EXISTS profiles CASCADE;
 CREATE TABLE profiles (
   user_id INTEGER PRIMARY KEY REFERENCES users(id) NOT NULL,
-  avatar_uri VARCHAR(255),
-  bio TEXT
+  name VARCHAR(255) NOT NULL DEFAULT '',
+  avatar_uri VARCHAR(1024),
+  bio TEXT NOT NULL DEFAULT '',
 );
