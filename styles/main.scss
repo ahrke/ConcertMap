@@ -101,6 +101,8 @@ body {
       li {
         display: flex;
         flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
         background-color: $color-1;
         color: $font-bright;
         text-align: left;
@@ -140,8 +142,30 @@ body {
           }
         }
 
-        .locate-btn {
-          display: none;
+        .tags {
+          display: flex;
+          align-self: center;
+          flex-direction: column;
+          justify-content: space-between;
+          height: 100%;
+
+
+          i {
+            visibility: hidden;
+            font-size: 0.7em;
+            padding: 0;
+            width: 100%;
+            height: 15px;
+          }
+
+
+          .locate-btn {
+            display: none;
+          }
+        }
+
+        &:hover .tags i {
+          visibility: visible
         }
 
         @media only screen and (max-width: 789px) {
