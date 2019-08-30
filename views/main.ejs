@@ -36,6 +36,30 @@
       <div class="gmap-container"></div>
     </div>
   </div>
+
+  <script>
+    const tagTrip = (trip_id, label) => {
+    console.log("==> favourite trip called")
+      $.ajax({
+        url: '/users/tag',
+        type: 'POST',
+        data: {
+          user_id: user_id,
+          event_id: null,
+          trip_id: trip_id,
+          cus_event_id: null,
+          label: label
+        }
+      })
+        .done(res => {
+          console.log("from favourite trip:",res);
+        })
+        .fail(err => {
+          console.log("error trying to favourite:",err);
+        })
+    }
+  </script>
+
 </body>
 
 </html>

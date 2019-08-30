@@ -90,7 +90,12 @@ const getListNode = (event) => {
           <span class='title'>${event.name.split('(')[0]}</span>
           <time><span class='date'>${formatDate(new Date(event.start_date))}</span></time>
         </p>
-        <button class="locate-btn fas fa-map-marker-alt"></button>
+
+        <div class="tags">
+          <i class="fas fa-heart" onclick="tagTrip(${event.id},'fav')"></i>
+          <i class="fas fa-fighter-jet" onclick="tagTrip(${event.id},'atn')"></i>
+          <button class="locate-btn fas fa-map-marker-alt"></button>
+        </div>
     </li>`;
   wrapper.childNodes[0].addEventListener('click', () => showArtist(event.id));
   return wrapper.childNodes[0];
@@ -150,9 +155,11 @@ const showArtist = async (eventId) => {
     const artistNode = popupNode.querySelector('.artist-area');
     artistNode.innerHTML =
       `<div class="artist">
-        <img src="${artist.image640 ? artist.image640 : '#'}"/>
-        <h1 class='name'>${artist.name}</h1>
-        <iframe class="player" src="${artist.iframeUrl}" width="300" height="600" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+        <div class="details">
+          <img src="${artist.image640 ? artist.image640 : '#'}"/>
+          <h4 class='name'>${artist.name}</h4>
+        </div>
+        <iframe class="player" src="${artist.iframeUrl}" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>
       </div>`;
     popupNode.classList.add('enabled');
     const eventListNode = document.querySelector(`[data-event-id="${eventId}"]`);
@@ -195,6 +202,27 @@ const getArtistInfo = async (name) => {
 
   return artistRes;
 };
+
+const tagTrip = window (trip_id, label) => {
+  console.log("==> favourite trip called")
+  $.ajax({
+    url: '/users/tag',
+    type: 'POST',
+    data: {
+      user_id: user_id,
+      event_id: null,
+      trip_id: trip_id,
+      cus_event_id: null,
+      label: label
+    }
+  })
+    .done(res => {
+      console.log("from favourite trip:",res);
+    })
+    .fail(err => {
+      console.log("error trying to favourite:",err);
+    })
+}
 
 const getVenueDetails = async (query) => {
   service = new google.maps.places.PlacesService(map);
