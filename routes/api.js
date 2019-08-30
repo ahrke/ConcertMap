@@ -85,7 +85,8 @@ module.exports = (db) => {
         'user_id': req.session.user_id,
         'name': req.body.name
       };
-      res.json(trip);
+      const newTrip = await db.insertTrip(trip);
+      res.json({ success: true, newTrip });
     } catch (err) {
       handleAppError(req, res, err);
     }

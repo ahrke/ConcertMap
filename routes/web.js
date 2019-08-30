@@ -66,7 +66,7 @@ module.exports = (db) => {
     try {
       if (req.session['user_id']) {
         const profile = await db.getUserProfile(req.session['user_id']);
-        res.render('user_settings', {user: profile});
+        res.render('user_settings', { user: profile });
       } else {
         res.redirect("/login");
       }
@@ -77,9 +77,14 @@ module.exports = (db) => {
 
   router.get("/trips", async (req, res) => {
     try {
-      const trips = await db.getTrips();
-      const user = { 'user_id': req.session['user_id'] };
-      res.render('all_trips', { user, trips, googleApiKey: process.env.GOOGLE_API_KEY });
+      const userIdFilter = { 'user_id': req.session['user_id'] };
+      const eventsReq = songkick.getVerifiedEvents(43.645144, -79.503008, '2019-08-30');
+      const cusEventsReq = db.getCustomEvents(userIdFilter);
+      const tripsReq = await db.getTrips();
+      const [events, cusEvents, trips] = await Promise.all([eventsReq, cusEventsReq, tripsReq]);
+      renameSongkickId(events);
+      events.splice(20);
+      res.render('all_trips', { user: userIdFilter, events: [...cusEvents, ...events], trips, googleApiKey: process.env.GOOGLE_API_KEY });
     } catch (err) {
       handleAppError(req, res, err);
     }
@@ -88,17 +93,14 @@ module.exports = (db) => {
   router.get("/profile/trips", async (req, res) => {
     try {
       if (req.session['user_id']) {
-        const userId = req.session['user_id'];
-        const tripsReq = db.getTrips({ 'user_id': userId });
-        const userTagsReq = db.getUserTags(userId);
-        let [userTags, trips] = await Promise.all([userTagsReq, tripsReq]);
-        for (let trip of trips) {
-          // Why???
-          trip.heart = false;
-          trip['user_id'] = userId;
-        }
-        const user = { 'user_id': req.session['user_id'] };
-        res.render('all_trips', { user, trips, googleApiKey: process.env.GOOGLE_API_KEY });
+        const userIdFilter = { 'user_id': req.session['user_id'] };
+        const eventsReq = songkick.getVerifiedEvents(43.645144, -79.503008, '2019-08-30');
+        const cusEventsReq = db.getCustomEvents(userIdFilter);
+        const tripsReq = await db.getTrips(userIdFilter);
+        const [events, cusEvents, trips] = await Promise.all([eventsReq, cusEventsReq, tripsReq]);
+        renameSongkickId(events);
+        events.splice(20);
+        res.render('all_trips', { user: userIdFilter, events: [...cusEvents, ...events], trips, googleApiKey: process.env.GOOGLE_API_KEY });
       } else {
         res.redirect('/login');
       }

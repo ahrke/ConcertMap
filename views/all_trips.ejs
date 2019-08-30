@@ -20,10 +20,12 @@
   <script type="text/javascript" src="/vendor/jquery-3.0.0.js"></script>
   <script type="text/javascript" src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous" async></script>
   <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?libraries=places&key=<%=googleApiKey%>"></script>
-  <script type="module" src="/scripts/map.js"></script>
-
-  <script type="text/javascript">
-  </script>
+  <script type="module" src="/scripts/trip-controller.js"></script>
+  <style>
+    .gmap-container {
+      color: black;
+    }
+</style>
 </head>
 
 <body>
@@ -41,7 +43,10 @@
 
   <div class="nav-list"></div>
 
-  <script>
+  <script type="module">
+    import { LinkedMarkerMap } from '/scripts/map.js';
+    import { TripController } from '/scripts/trip-controller.js';
+
     let icons = [];
     icons.push('<i class="fas fa-bread-slice"></i>');
     icons.push('<i class="fas fa-bone"></i>');
@@ -60,28 +65,9 @@
       return icons[Math.floor(Math.random() * icons.length)]
     }
 
-  </script>
 
-  <script type="module">
-    import { LinkedMarkerMap } from '/scripts/map.js';
-    const renderMarkers = (eventsRes) => {
-      for (let marker of map.markers) {
-        marker.setMap(null);
-      }
-
-      console.log("==> from renderMarkers, eventsRes:",eventsRes)
-      eventsRes.splice(50);
-      for (let eventRes of eventsRes) {
-        console.log("inside eventsRes, eventRes:",eventRes)
-        if (eventRes.latlng) {
-          const marker = map.getNewMarker(eventRes.latlng[0], eventRes.latlng[1]);
-          map.registerMarker(marker);
-        }
-      }
-    };
-
-    let map;
     const favouriteTrip = window.favouriteTrip = (trip_id) => {
+      return;
       console.log("==> favourite trip called")
       $.ajax({
         url: '/users/tag',
@@ -102,9 +88,11 @@
         })
     }
 
-    let trips = <%- JSON.stringify(trips) %>;
-    let user_id = <%- user.user_id %>;
-    console.log(user_id)
+    const trips = <%- JSON.stringify(trips) %>;
+    const events = <%- JSON.stringify(events) %>;
+    let user_id = <%= user['user_id'] %>;
+
+    window.embededData = {trips, events};
 
     let tripList = document.querySelector(".trip-list");
 
@@ -123,7 +111,7 @@
       }
       let icon = getRandomIcon();
       tripList.innerHTML += `
-        <li id='${trip.id}' onclick='populateTrip(this.id)'>
+        <li id='${trip.id}' onclick='window.tripController.setTrip(this.id)'>
           ${icon}
           <span>${trip.name}</span>
           ${i}
@@ -166,8 +154,8 @@
                 console.log("erroors",err)
               })
             }
-            renderMarkers(events);
 
+            // Render
         }
 
         fillEvents();
@@ -179,11 +167,12 @@
     }
 
     const onGMapLoad = () => {
-      map = new LinkedMarkerMap(document.querySelector('.gmap-container'), {
+      window.map = new LinkedMarkerMap(document.querySelector('.gmap-container'), {
         center: { lat: 43.661539, lng: -79.411079 },
         zoom: 14
       });
-      map.setCustomMarkers(false);
+      window.map.setCustomMarkers(false);
+      window.tripController = new TripController(window.map, window.embededData.trips, window.embededData.events, true);
     };
 
     $(document).ready(() => {
