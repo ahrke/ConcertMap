@@ -13,7 +13,7 @@
     if (window.location.hash) {
       hashParams = getHashParams();
       sessionStorage.setItem('spotify_token', hashParams.access_token)
-      window.location.assign('/map');
+      window.location.assign('<%= mapPageLink %>');
     }
   });
 </script>

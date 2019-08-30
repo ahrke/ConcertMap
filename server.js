@@ -43,31 +43,12 @@ app.use("/styles", sass({
 app.use(express.static("public"));
 
 // Separated Routes for each Resource
-// Note: Feel free to replace the example routes below with your own
-const mainRoutes = require('./routes/main');
-const usersRoutes = require('./routes/users');
-const dataRoutes = require('./routes/data');
-const songkickRoutes = require('./routes/songkick');
+const webRoutes = require('./routes/web');
+const apiRoutes = require('./routes/api');
 
 // Mount all resource routes
-// Note: Feel free to replace the example routes below with your own
-app.use("/users", usersRoutes(database));
-app.use("/", mainRoutes());
-app.use("/", dataRoutes(database));
-app.use("/songkick", songkickRoutes());
-// Note: mount other resources here, using the same pattern above
-
-app.get("/temp_form", (req, res) => {
-  res.render("temp_user_form");
-});
-
-// Home page
-// Warning: avoid creating more routes in this file!
-// Separate them into separate routes files (see above).
-app.get("/", (req, res) => {
-  res.render("lander", {baseURI: process.env.BASE_URI, spotifyApiID: process.env.SPOTIFY_API_ID, googleApiKey: process.env.GOOGLE_API_KEY});
-});
-
+app.use("/", webRoutes(database));
+app.use("/", apiRoutes(database));
 
 (async() => {
   const getListenPromise = (server, ...p) => {
@@ -80,8 +61,8 @@ app.get("/", (req, res) => {
 
   const httpServer = http.createServer(app);
   try {
-    await getListenPromise(httpServer, 3000, BIND_HOST);
-    console.log("App listening on port 3000");
+    await getListenPromise(httpServer, 80, BIND_HOST);
+    console.log("App listening on port 80");
   } catch (err) {
     await getListenPromise(httpServer, process.env.ALT_PORT, BIND_HOST);
     console.log(`App listening on port ${process.env.ALT_PORT}`);
