@@ -5,6 +5,7 @@ const songkick = require('../api/songkick');
 module.exports = (db) => {
 
   const handleAppError = (req, res, err) => {
+    console.log(err);
     res.status(400);
     res.json({ error: err.message });
   };
@@ -68,7 +69,8 @@ module.exports = (db) => {
   router.get("/trips", async (req, res) => {
     try {
       const trips = await db.getTrips();
-      res.render('all_trips', { 'user_id': req.session['user_id'], trips, googleApiKey: process.env.GOOGLE_API_KEY });
+      const user = { 'user_id': req.session['user_id'] };
+      res.render('all_trips', { user, trips, googleApiKey: process.env.GOOGLE_API_KEY });
     } catch (err) {
       handleAppError(req, res, err);
     }
@@ -86,13 +88,19 @@ module.exports = (db) => {
           trip.heart = false;
           trip['user_id'] = userId;
         }
-        res.render('all_trips', { 'user_id': req.session['user_id'], trips, googleApiKey: GOOGLE_API_KEY });
+        const user = { 'user_id': req.session['user_id'] };
+        res.render('all_trips', { user, trips, googleApiKey: process.env.GOOGLE_API_KEY });
       } else {
         res.redirect('/login');
       }
     } catch (err) {
       handleAppError(req, res, err);
     }
+  });
+
+  router.get('/login', (req, res) => {
+    req.session['user_id'] = 1;
+    res.redirect('/');
   });
 
   router.post("/login", async (req, res) => {

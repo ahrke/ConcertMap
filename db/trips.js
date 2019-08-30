@@ -4,6 +4,7 @@ const db = require('./con');
  * Get trips from the database with optional filter
  */
 const getTrips = async(filter) => {
+  filter = filter || {};
   const res = await db.query('SELECT trp.id, trp.name FROM trips trp WHERE coalesce(trp.user_id = $1, true)', [filter['user_id']]);
   return res.rows;
 };

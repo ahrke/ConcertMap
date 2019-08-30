@@ -33,9 +33,9 @@ const getUserTags = async(userId) => {
       SELECT tg.event_id, tg.cus_event_id, tg.trip_id, tg.label FROM tags tg
       WHERE user_id = $1;
   `;
-  const tagsRes = await db.query(query, userId);
+  const tagsRes = await db.query(query, [userId]);
   const typedRes = [];
-  for (let tag of tagsRes) {
+  for (let tag of tagsRes.rows) {
     if (tag['event_id']) typedRes.push({ 'label': tag.label, 'target_id': tag['event_id'], 'target_type': 'event' });
     if (tag['cus_event_id']) typedRes.push({ 'label': tag.label, 'target_id': `c${tag['cus_event_id']}`, 'target_type': 'event' });
     if (tag['trip_id']) typedRes.push({ 'label': tag.label, 'target_id': tag['trip_id'], 'target_type': 'trip' });
