@@ -92,8 +92,8 @@ const getListNode = (event) => {
         </p>
 
         <div class="tags">
-          <i class="fas fa-heart" onclick="tagTrip(${event.id},'fav')"></i>
-          <i class="fas fa-fighter-jet" onclick="tagTrip(${event.id},'atn')"></i>
+          <i class="fas fa-heart fav" onclick="tagEvent(${event.id},'fav')"></i>
+          <i class="fas fa-fighter-jet atn" onclick="tagEvent(${event.id},'atn')"></i>
           <button class="locate-btn fas fa-map-marker-alt"></button>
         </div>
     </li>`;
@@ -203,27 +203,6 @@ const getArtistInfo = async (name) => {
 
   return artistRes;
 };
-
-const tagTrip = (trip_id, label) => {
-  console.log("==> favourite trip called")
-  $.ajax({
-    url: '/users/tag',
-    type: 'POST',
-    data: {
-      user_id: user_id,
-      event_id: null,
-      trip_id: trip_id,
-      cus_event_id: null,
-      label: label
-    }
-  })
-    .done(res => {
-      console.log("from favourite trip:",res);
-    })
-    .fail(err => {
-      console.log("error trying to favourite:",err);
-    })
-}
 
 const getVenueDetails = async (query) => {
   service = new google.maps.places.PlacesService(map);
