@@ -12,6 +12,7 @@ const postObj = async (url, data) => {
     });
   const resObj = await (res.json());
   if (!resObj) throw new Error(`POST to ${url} failed`);
+  return resObj;
 };
 
 const getEvents = async (url, data) => {

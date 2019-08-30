@@ -4,8 +4,9 @@ const router = express.Router();
 module.exports = (db) => {
 
   const handleAppError = (req, res, err) => {
+    console.log(err);
     res.status(400);
-    res.json({ error: err.message });
+    res.json({ success: false, error: err.message });
   };
 
   // GET a trip's data (all stops)
@@ -64,14 +65,15 @@ module.exports = (db) => {
   router.post("/events", async (req, res) => {
     try {
       const customEvent = {
-        'user_id': req.session.user_id || 1,
+        'user_id': req.session.user_id,
         'name': req.body.name,
         'description': req.body.description,
         'start_date': new Date(req.body.start_date),
         'venue': req.body.venue,
-        'latlng': req.body.latlng.join(', ')
+        'latlng': req.body.latlng
       };
-      res.json(customEvent);
+      await db.insertCustomEvent(customEvent);
+      res.json({ success: true });
     } catch (err) {
       handleAppError(req, res, err);
     }
@@ -91,32 +93,21 @@ module.exports = (db) => {
 
   router.post("/trips/:tripId/stops", async (req, res) => {
     try {
-      const stop = {
-        'trip_id': req.params.tripId,
-        'event_id': req.body['event_id'],
-        'id': req.body.id,
-        'description': req.body['description']
-      };
-      res.json(stop);
+      const newStop = await db.insertTripStop(req.body.stop, req.body.prevStopId);
+      res.json({ success: true, newStop });
     } catch (err) {
       handleAppError(req, res, err);
     }
   });
 
-  router.put("/trips/:tripId/stops/:stopId", async (req, res) => {
+  router.post("/trips/:tripId/stops/:stopId/delete", async (req, res) => {
     try {
-      const stop = {
-        'trip_id': req.params.tripId,
-        'event_id': req.body['event_id'],
-        'next_stop_id': req.body['next_stop_id'],
-        'description': req.body['description']
-      };
-      res.json(stop);
+      await db.removeTripStop(req.params.stopId);
+      res.json({ success: true });
     } catch (err) {
       handleAppError(req, res, err);
     }
   });
-
 
   return router;
-}
+};

@@ -22,14 +22,25 @@ const TripController = function(map, trips, events, isReadOnly) {
 
 TripController.prototype.confirmLink = async function(prevMarker, marker, description) {
   const trip = this.trips[this.cur];
-  const prevStop = Object.values(trip.stops).find(stop => stop['event_id'] === prevMarker.data.id);
+  const prevStop = prevMarker ? Object.values(trip.stops).find(stop => stop['event_id'] === prevMarker.data.id) : null;
   const prevStopId = prevStop ? prevStop.id : null;
   const stop = {
     'trip_id': trip.id,
     'event_id': marker.data.id,
     description
   };
-  console.log('Add', {prevStopId, stop});
+  const { newStop } = await postObj(`/trips/${trip.id}/stops`, { prevStopId, stop });
+  trip.stops[newStop.id] = newStop;
+  newStop.prev = trip.lastStop;
+  trip.lastStop = newStop;
+  console.log('Add', { prevStopId, stop }, newStop);
+};
+
+TripController.prototype.confirmRemove = async function(marker) {
+  const trip = this.trips[this.cur];
+  const stopId = Object.values(trip.stops).find(stop => stop['event_id'] === marker.data.id).id;
+  const res = await postObj(`/trips/${trip.id}/stops/${stopId}/delete`, {});
+  console.log('Remove', {'trip_id': trip.id, 'stop_id': stopId}, res);
 };
 
 TripController.prototype.removeFromLink = function(marker) {
@@ -38,16 +49,15 @@ TripController.prototype.removeFromLink = function(marker) {
     this._map.selectMarker(this.markerRoot);
   }
   this._map.removeMarkerLink(marker);
-
-  const trip = this.trips[this.cur];
-  const stopId = Object.values(trip.stops).find(stop => stop['event_id'] === marker.data.id).id;
-  console.log('Remove', {tripId: trip.id, stopId});
 };
 
 TripController.prototype.addStopPopup = function(marker, description) {
   marker.stopWindow = new MarkerInfoWindow(marker);
   marker.stopWindow.addListener('markerclick', (marker, containerNode, closeBtnNode) => {
-    closeBtnNode.addEventListener('click', () => this.removeFromLink(marker));
+    closeBtnNode.addEventListener('click', () => {
+      this.removeFromLink(marker);
+      this.confirmRemove(marker);
+    });
   });
   marker.stopWindow.setClosable(!this._isReadOnly);
   marker.stopWindow.open(description);
@@ -120,15 +130,7 @@ TripController.prototype.update = async function() {
 
   if (trip.stops) return;
 
-  // const stopsRes = await getTripInfo(trip.id);
-
-  // TEST:
-  trip['last_stop_id'] = 3;
-  const stopsRes = [
-    { id: 1, event_id: 'c14', next_stop_id: 2, description: "A" },
-    { id: 2, event_id: 'c12', next_stop_id: 3, description: "B" },
-    { id: 3, event_id: 'c13', next_stop_id: null, description: "C" }
-  ];
+  const stopsRes = await getTripInfo(trip.id);
 
   const stops = {};
   for (let stop of stopsRes) {
@@ -137,14 +139,13 @@ TripController.prototype.update = async function() {
   for (let stop of stopsRes) {
     stop.event = this.events.find(event => event.id === stop['event_id']);
 
-    if (stop['next_stop_id'] === null) continue;
+    if (!stop['next_stop_id']) continue;
     stop.next = stops[stop['next_stop_id']];
     stop.next.prev = stop;
   }
 
   trip.stops = stops;
   trip.lastStop = (trip['last_stop_id'] ? stops[trip['last_stop_id']] : null);
-
   this.render();
 };
 

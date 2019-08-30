@@ -10,6 +10,13 @@ module.exports = (db) => {
     res.json({ error: err.message });
   };
 
+  const renameSongkickId = (events) => {
+    for (let event of events) {
+      event.id = String(event['concert_id']);
+      delete event['concert_id'];
+    }
+  };
+
   router.get("/temp_form", (req, res) => {
     res.render("temp_user_form");
   });
@@ -27,10 +34,8 @@ module.exports = (db) => {
       const eventsReq = songkick.getVerifiedEvents(43.645144, -79.503008, '2019-08-30');
       const cusEventsReq = db.getCustomEvents();
       const [events, cusEvents] = await Promise.all([eventsReq, cusEventsReq]);
-      for (let event of events) {
-        event.id = String(event['concert_id']);
-        delete event['concert_id'];
-      }
+      renameSongkickId(events);
+      events.splice(20);
       res.render("main", { events: [...cusEvents, ...events], googleApiKey: process.env.GOOGLE_API_KEY });
     } catch (err) {
       console.log("error during spotify:", err);
@@ -40,11 +45,15 @@ module.exports = (db) => {
   router.get("/profile", async (req, res) => {
     try {
       if (req.session['user_id']) {
+        const userIdFilter = { 'user_id': req.session['user_id'] };
         const eventsReq = songkick.getVerifiedEvents(43.645144, -79.503008, '2019-08-30');
-        const cusEventsReq = db.getCustomEvents({ 'user_id': req.session['user_id'] });
+        const cusEventsReq = db.getCustomEvents(userIdFilter);
         const profileReq = db.getUserProfile(req.session['user_id']);
-        const [profile, events, cusEvents] = await Promise.all([profileReq, eventsReq, cusEventsReq]);
-        res.render('account', { events: [...cusEvents, ...events], user: profile, googleApiKey: process.env.GOOGLE_API_KEY });
+        const tripsReq = await db.getTrips(userIdFilter);
+        const [profile, events, cusEvents, trips] = await Promise.all([profileReq, eventsReq, cusEventsReq, tripsReq]);
+        renameSongkickId(events);
+        events.splice(20);
+        res.render('account', { events: [...cusEvents, ...events], trips, user: profile, googleApiKey: process.env.GOOGLE_API_KEY });
       } else {
         res.redirect("/login");
       }

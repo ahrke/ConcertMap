@@ -8,8 +8,4 @@ const pool = new Pool({
   database: DB_NAME
 });
 
-module.exports = {
-  query: (...p) => {
-    return pool.query(...p);
-  }
-};
+module.exports = pool;
