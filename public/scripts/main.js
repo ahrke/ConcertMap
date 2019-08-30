@@ -92,8 +92,8 @@ const getListNode = (event) => {
         </p>
 
         <div class="tags">
-          <i class="fas fa-heart fav" onclick="tagEvent(${event.id},'fav')"></i>
-          <i class="fas fa-fighter-jet atn" onclick="tagEvent(${event.id},'atn')"></i>
+          <i class="fas fa-heart fav" onclick="tagEvent('${event.id}','fav')"></i>
+          <i class="fas fa-fighter-jet atn" onclick="tagEvent('${event.id}','atn')"></i>
           <button class="locate-btn fas fa-map-marker-alt"></button>
         </div>
     </li>`;

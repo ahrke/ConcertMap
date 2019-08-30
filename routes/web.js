@@ -109,10 +109,27 @@ module.exports = (db) => {
     }
   });
 
-  // router.get('/login', (req, res) => {
-  //   req.session['user_id'] = 1;
-  //   res.redirect('/');
-  // });
+  router.get('/login', (req, res) => {
+    if (req.session.user_id) {
+      res.redirect('/map');
+    } else {
+      res.render('login');
+    }
+  });
+  router.get('/signup', (req, res) => {
+    if (req.session.user_id) {
+      res.redirect('/map');
+    } else {
+      res.render('signup');
+    }
+  });
+  router.get('/newProfile', (req, res) => {
+    if (req.session.user_id) {
+      res.redirect('/users');
+    } else {
+      res.render('new_profile');
+    }
+  });
 
   router.post("/login", async (req, res) => {
     req.session.user_id = 11;

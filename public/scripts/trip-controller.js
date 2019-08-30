@@ -46,7 +46,7 @@ TripController.prototype.registerTripSwitcher = function() {
     const wrapper = document.createElement('div');
     wrapper.innerHTML = `<div class="trip-name-container" style="text-align: center; font-size: 16px; background: #FFFFFF; padding: 10px; min-width: 250px;">
                             <p class="name"></p>
-                            <i class="trip-add-btn fas fa-plus-circle" style="font-size: 16px; display: block; width: 16px; margin: 0 auto; padding: 4px;"></i>
+                            <i class="trip-add-btn fas fa-plus-circle" style="cursor: pointer; font-size: 16px; display: block; width: 16px; margin: 0 auto; padding: 4px;"></i>
                             <div class="form-group" style="display: none">
                               <input type="text" class="form-control" placeholder="New Trip Name" />
                               <button type="button" class="form-control btn btn-primary">Add Trip</button>
@@ -56,12 +56,12 @@ TripController.prototype.registerTripSwitcher = function() {
   })();
   this.leftNavControl = (() => {
     const wrapper = document.createElement('div');
-    wrapper.innerHTML = `<i class="trip-left-btn fas fa-angle-double-left" style="font-size: 16px; background: #FFFFFF; padding: 10px; margin-left: 20px;"></i>`;
+    wrapper.innerHTML = `<i class="trip-left-btn fas fa-angle-double-left" style="cursor: pointer; font-size: 16px; background: #FFFFFF; padding: 10px; margin-left: 20px;"></i>`;
     return wrapper.childNodes[0];
   })();
   this.rightNavControl = (() => {
     const wrapper = document.createElement('div');
-    wrapper.innerHTML = `<i class="trip-right-btn fas fa-angle-double-right" style="font-size: 16px; background: #FFFFFF; padding: 10px; margin-right: 20px;"></i>`;
+    wrapper.innerHTML = `<i class="trip-right-btn fas fa-angle-double-right" style="cursor: pointer; font-size: 16px; background: #FFFFFF; padding: 10px; margin-right: 20px;"></i>`;
     return wrapper.childNodes[0];
   })();
 
@@ -240,6 +240,8 @@ TripController.prototype.render = function() {
   const trip = this.trips[this.cur];
   let stop = trip.lastStop;
   while (stop) {
+    if (!stop.event) break;
+    if (stop.prev && !stop.prev.event) break;
     if (stop.prev) this._map.addLink(stop.prev.event.marker, stop.event.marker);
     this.addStopPopup(stop.event.marker, stop.description);
     stop = stop.prev;

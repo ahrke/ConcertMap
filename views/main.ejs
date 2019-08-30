@@ -48,7 +48,7 @@
         label: label
       }
       if (e_id[0] === 'c') {
-        data.cus_event_id = Number(e_id.splice(1));
+        data.cus_event_id = Number(e_id.slice(1));
         data.event_id = null;
       } else {
         data.cus_event_id = null;
