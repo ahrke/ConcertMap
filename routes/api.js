@@ -1,5 +1,8 @@
 const express = require('express');
 const router = express.Router();
+const bcrypt = require("bcrypt");
+
+const saltRounds = 10;
 
 module.exports = (db) => {
 
@@ -18,6 +21,81 @@ module.exports = (db) => {
       handleAppError(req, res, err);
     }
   });
+
+
+
+  // Dave: GET / POSTS
+  router.get('/login', (req,res) => {
+    if (req.session.user_id) {
+      res.redirect('/map');
+    } else {
+      res.render('login');
+    }
+  });
+
+  router.get('/signup', (req,res) => {
+    if (req.session.user_id) {
+      res.redirect('/map');
+    } else {
+      res.render('signup');
+    }
+  });
+
+  router.get('/newProfile', (req,res) => {
+    if (req.session.user_id) {
+      res.redirect('/users');
+    } else {
+      res.render('new_profile');
+    }
+  });
+
+
+  // POST create a new user
+  router.post("/signup", (req, res) => {
+    bcrypt.hash(req.body.password, saltRounds, function(err, hash) {
+      let user = {
+        email: req.body.email,
+        password: hash
+      };
+
+      db.insertUser(user)
+        .then(data => {
+          console.log("data from insertUser:",data)
+          req.session.user_id = data;
+          res.render('new_profile')
+        })
+        .catch(err => {
+          res
+            .status(500)
+            .json({ error: err.message });
+        });
+    });
+  });
+
+  // POST add a profile for a created user
+  router.post("/profile", async (req, res) => {
+    console.log("from /profile POST, req.body:",req.body)
+    console.log("from same, user_id:",req.session.user_id)
+
+    let profile = {
+      user_id: req.session.user_id,
+      name: req.body.name,
+      bio: req.body.bio,
+      avatar_uri: req.body.avatar_uri
+    };
+
+    await db.upsertUserProfile(profile)
+      .then(data => {
+        res.redirect('/map');
+      })
+      .catch(err => {
+        res
+          .status(500)
+          .json({ error: err.message });
+      });
+  });
+
+
 
   // POST/PUT routes
   router.post("/users", async (req, res) => {
@@ -80,6 +158,9 @@ module.exports = (db) => {
   });
 
   router.post("/trips", async (req, res) => {
+    if (!req.session.user_id) {
+      res.redirect("/login");
+    }
     try {
       const trip = {
         'user_id': req.session.user_id,
@@ -108,6 +189,31 @@ module.exports = (db) => {
     } catch (err) {
       handleAppError(req, res, err);
     }
+  });
+
+  router.post("/tag", async (req, res) => {
+    console.log("from inside post/tag, req.body:", req.body)
+    try {
+    let tag = {
+      user_id: req.session.user_id,
+      event_id: req.body.event_id,
+      trip_id: req.body.trip_id,
+      cus_event_id: req.body.cus_event_id,
+      label: req.body.label
+    };
+
+    await db.addTag(tag)
+      .then(data => {
+        res.json(data);
+      })
+      .catch(err => {
+        res
+          .status(500)
+          .json({ error: err.message });
+      });
+  } catch (err) {
+    handleAppError(req, res, err);
+  }
   });
 
   return router;

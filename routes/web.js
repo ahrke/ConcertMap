@@ -36,7 +36,7 @@ module.exports = (db) => {
       const [events, cusEvents] = await Promise.all([eventsReq, cusEventsReq]);
       renameSongkickId(events);
       events.splice(20);
-      res.render("main", { events: [...cusEvents, ...events], googleApiKey: process.env.GOOGLE_API_KEY });
+      res.render("main", { events: [...cusEvents, ...events], user_id: req.session.user_id, googleApiKey: process.env.GOOGLE_API_KEY });
     } catch (err) {
       console.log("error during spotify:", err);
     }
@@ -115,20 +115,24 @@ module.exports = (db) => {
   // });
 
   router.post("/login", async (req, res) => {
-    try {
-      const user = await db.getUserByEmail(req.body.email);
-      const [err, isAuthed] = await bcrypt.compare(req.body.password, user.password);
-      if (isAuthed) {
-        req.session['user_id'] = user.id;
-        res.redirect('/profile');
-      } else {
-        req.session = null;
-        res.redirect('/login');
-        throw new Error(err.toString());
-      }
-    } catch (err) {
-      handleAppError(req, res, err);
-    }
+    req.session.user_id = 11;
+    res.redirect("/map");
+    // console.log(req.body.email)
+    // try {
+    //   const user = await db.getUserByEmail(req.body.email);
+    //   console.log("user ==> ",user)
+    //   const [err, isAuthed] = await bcrypt.compare(req.body.password, user.password);
+    //   if (isAuthed) {
+    //     req.session['user_id'] = user.id;
+    //     res.redirect('/profile');
+    //   } else {
+    //     req.session = null;
+    //     res.redirect('/login');
+    //     throw new Error(err.toString());
+    //   }
+    // } catch (err) {
+    //   handleAppError(req, res, err);
+    // }
   });
 
   router.get("/logout", (req, res) => {

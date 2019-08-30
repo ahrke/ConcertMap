@@ -38,18 +38,26 @@
   </div>
 
   <script>
-    const tagTrip = (trip_id, label) => {
-    console.log("==> favourite trip called")
+    const tagEvent = (e_id, label) => {
+      let user_id = <%-user_id %>
+      console.log("user_id =>",user_id)
+      console.log("==> favourite trip called")
+      let data = {
+        user_id: user_id,
+        trip_id: null,
+        label: label
+      }
+      if (e_id[0] === 'c') {
+        data.cus_event_id = Number(e_id.splice(1));
+        data.event_id = null;
+      } else {
+        data.cus_event_id = null;
+        data.event_id = e_id;
+      }
       $.ajax({
-        url: '/users/tag',
+        url: '/tag',
         type: 'POST',
-        data: {
-          user_id: user_id,
-          event_id: null,
-          trip_id: trip_id,
-          cus_event_id: null,
-          label: label
-        }
+        data: data
       })
         .done(res => {
           console.log("from favourite trip:",res);

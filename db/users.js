@@ -4,6 +4,7 @@ const db = require('./con');
  * Get a single user from the database given their email.
  */
 const getUserByEmail = async(email) => {
+  console.log("email from getUserByEmail:",email)
   const queryText = `SELECT usr.id, usr.email, usr.password FROM users usr WHERE email = $1;`;
   const res = db.query(queryText, [email]);
   if (res.rowCount === 0) throw new Error('User with email not found');
@@ -44,9 +45,9 @@ const getUserTags = async(userId) => {
   return typedRes;
 };
 
-const insertUser = (user) => {
-  const queryText = 'INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id';
-  const res = db.query(queryText, [user['email'], user['password']]);
+const insertUser = async (user) => {
+  const queryText = 'INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id;';
+  const res = await db.query(queryText, [user['email'], user['password']]);
   if (res.rowCount !== 1) throw new Error('User creation failed');
   return res.rows[0].id;
 };
@@ -59,8 +60,49 @@ const upsertUserProfile = async(profile) => {
     DO UPDATE SET avatar_uri = $2, bio = $3
     RETURNING user_id;
   `;
-  const res = await db.query(queryText, [profile['user_id'], profile['avatar_uri'], profile['bio']]);
+  // const queryText = `
+  //   INSERT INTO profiles (user_id, name, avatar_uri, bio)
+  //   VALUES ($1, $2, $3, $4)
+  //   RETURNING user_id;
+  // `;
+  const res = await db.query(queryText, [profile['user_id'], profile['name'], profile['avatar_uri'], profile['bio']]);
   if (res.rowCount !== 1) throw new Error('Update profile failed');
 };
 
-module.exports = { getUserByEmail, getUserProfile, upsertUserProfile, getUserTags, insertUser };
+const addTag =  function(tag) {
+  console.log("we're in add tag, with tag:",tag)
+  let option = '';
+  let arr = [tag.user_id]
+  if (tag.event_id) {
+    option = 'event_id';
+    arr.push(tag.event_id);
+  } else if (tag.trip_id) {
+    option = 'trip_id';
+    arr.push(tag.trip_id);
+  } else {
+    option = 'cus_events_id';
+    arr.push(tag.cus_event_id);
+  }
+  arr.push(tag.label);
+  const query = {
+    text: `
+      INSERT INTO tags (user_id, ${option}, label)
+      VALUES
+        ($1, $2, $3)
+      RETURNING *;
+    `,
+    values: arr
+  };
+
+  return new Promise((resolve, reject) => {
+    db.query(query.text, query.values, (err, res) => {
+      if (err) {
+        console.error('query error',err.stack);
+        reject(err);
+      }
+      resolve(res.rows[0]);
+    });
+  })
+}
+
+module.exports = { getUserByEmail, getUserProfile, upsertUserProfile, getUserTags, insertUser, addTag };

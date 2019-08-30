@@ -148,6 +148,7 @@ body {
           flex-direction: column;
           justify-content: space-between;
           height: 100%;
+          position: relative;
 
 
           i {
@@ -156,6 +157,26 @@ body {
             padding: 0;
             width: 100%;
             height: 15px;
+            pointer-events: all;
+
+            .fav {
+              position: absolute;
+              z-index: 5;
+              right: 10px;
+              top: 10px;
+            }
+
+            .atn {
+              position: absolute;
+              z-index: 5;
+              right: 10px;
+              top: 40px;
+            }
+
+            &:hover {
+              transform: scale(1.5);
+              text-shadow: darkslategray 3px;
+            }
           }
 
 
