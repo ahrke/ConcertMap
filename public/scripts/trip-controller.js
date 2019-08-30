@@ -240,6 +240,8 @@ TripController.prototype.render = function() {
   const trip = this.trips[this.cur];
   let stop = trip.lastStop;
   while (stop) {
+    if (!stop.event) continue;
+    if (!stop.prev.event) continue;
     if (stop.prev) this._map.addLink(stop.prev.event.marker, stop.event.marker);
     this.addStopPopup(stop.event.marker, stop.description);
     stop = stop.prev;

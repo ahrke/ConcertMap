@@ -82,29 +82,16 @@ body {
 
 @media only screen and (max-width: 789px) {
   .content {
-    display: grid;
-    grid-template-columns: 1fr;
-    grid-template-rows: 3fr 1fr;
-    height: 100%;
-    width: 100%;
-
+    flex-direction: column;
+  }
 
     .main {
-      display: grid;
-      grid-row: 1/2;
-      position: inherit;
+      flex: 4;
+      height: 100%;
+      order: 0;
     }
-
-.main {
-  flex: 4;
-  height: 100%;
-  @media only screen and (max-width: 789px) {
-    order: 0;
-  }
-}
     .trip-list {
-      grid-row-start: 2;
-      grid-row-end: 3;
+      order: 1;
       max-width: 100%;
       width: 100%;
 
@@ -129,4 +116,3 @@ body {
       }
     }
   }
-}

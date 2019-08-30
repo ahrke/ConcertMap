@@ -61,7 +61,7 @@ app.use("/", apiRoutes(database));
 
   const httpServer = http.createServer(app);
   try {
-    await getListenPromise(httpServer, 3000, BIND_HOST);
+    await getListenPromise(httpServer, 80, BIND_HOST);
     console.log("App listening on port 80");
   } catch (err) {
     await getListenPromise(httpServer, process.env.ALT_PORT, BIND_HOST);

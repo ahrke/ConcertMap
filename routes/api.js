@@ -25,7 +25,7 @@ module.exports = (db) => {
 
 
   // Dave: GET / POSTS
-  router.get('/login', (req,res) => {
+  router.get('/login', (req, res) => {
     if (req.session.user_id) {
       res.redirect('/map');
     } else {
@@ -33,7 +33,7 @@ module.exports = (db) => {
     }
   });
 
-  router.get('/signup', (req,res) => {
+  router.get('/signup', (req, res) => {
     if (req.session.user_id) {
       res.redirect('/map');
     } else {
@@ -41,7 +41,7 @@ module.exports = (db) => {
     }
   });
 
-  router.get('/newProfile', (req,res) => {
+  router.get('/newProfile', (req, res) => {
     if (req.session.user_id) {
       res.redirect('/users');
     } else {
@@ -60,7 +60,7 @@ module.exports = (db) => {
 
       db.insertUser(user)
         .then(data => {
-          console.log("data from insertUser:",data)
+          console.log("data from insertUser:", data)
           req.session.user_id = data;
           res.render('new_profile')
         })
@@ -74,8 +74,8 @@ module.exports = (db) => {
 
   // POST add a profile for a created user
   router.post("/profile", async (req, res) => {
-    console.log("from /profile POST, req.body:",req.body)
-    console.log("from same, user_id:",req.session.user_id)
+    console.log("from /profile POST, req.body:", req.body)
+    console.log("from same, user_id:", req.session.user_id)
 
     let profile = {
       user_id: req.session.user_id,
@@ -191,9 +191,55 @@ module.exports = (db) => {
     }
   });
 
-  router.post("/tag", async (req, res) => {
-    console.log("from inside post/tag, req.body:", req.body)
-    try {
+  // POST update a profile's bio column
+  router.post("/users/profile/updateBio", (req, res) => {
+    if (req.session.user_id) {
+      let user = {
+        user_id: req.session.user_id,
+        bio: req.body.bio
+      };
+      console.log(user);
+
+      db.updateProfileBio(user)
+        .then(data => {
+          let user = data;
+          res.redirect('/profile/settings')
+        })
+        .catch(err => {
+          res.status(500);
+          res.json({ error: err.message });
+        });
+    } else {
+      res.redirect('/login');
+    }
+  })
+
+  // POST update a profile's avatar URI column
+  router.post("/users/profile/updateAvatar", (req, res) => {
+    if (req.session.user_id) {
+      let user = {
+        user_id: req.session.user_id,
+        avatar_uri: req.body.avatar_uri
+      };
+
+      db.updateProfileAvatarUri(user)
+        .then(data => {
+          let user = data;
+          res.redirect('/profile/settings', { user })
+        })
+        .catch(err => {
+          res
+            .status(500)
+            .json({ error: err.message });
+        });
+    } else {
+      res.redirect('/login');
+    }
+  });
+
+
+  // POST add a favourite or attending tag
+  router.post("/tag", (req, res) => {
     let tag = {
       user_id: req.session.user_id,
       event_id: req.body.event_id,
@@ -201,19 +247,16 @@ module.exports = (db) => {
       cus_event_id: req.body.cus_event_id,
       label: req.body.label
     };
+    console.log(tag);
 
-    await db.addTag(tag)
+    db.addTag(tag)
       .then(data => {
         res.json(data);
       })
       .catch(err => {
-        res
-          .status(500)
-          .json({ error: err.message });
+        res.status(500);
+        res.json({ error: err.message });
       });
-  } catch (err) {
-    handleAppError(req, res, err);
-  }
   });
 
   return router;
