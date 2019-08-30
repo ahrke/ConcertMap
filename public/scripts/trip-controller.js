@@ -17,7 +17,80 @@ const TripController = function(map, trips, events, isReadOnly) {
   this.cur = trips.length > 0 ? 0 : null;
 
   if (!this._isReadOnly) this.registerTripEditor();
+  this.registerTripSwitcher();
   this.update();
+};
+
+TripController.prototype.next = function() {
+  if (this.cur + 1 >= this.trips.length) return;
+  this.cur += 1;
+  this.update();
+};
+
+TripController.prototype.prev = function() {
+  if (this.cur - 1 < 0) return;
+  this.cur -= 1;
+  this.update();
+};
+
+TripController.prototype.setTrip = function(tripId) {
+  const newIndex = this.trips.findIndex(trip => String(trip.id) === tripId);
+  if (newIndex < 0) return;
+  this.cur = newIndex;
+  this.update();
+};
+
+TripController.prototype.registerTripSwitcher = function() {
+  const map = this._map;
+  this.tripNameControl = (() => {
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = `<div class="trip-name-container" style="font-size: 16px; background: #FFFFFF; padding: 10px;">
+                            <p class="name"></p>
+                            <i class="trip-add-btn fas fa-plus-circle" style="font-size: 16px; display: block; width: 16px; margin: 0 auto; padding: 4px;"></i>
+                            <div class="form-group" style="display: none">
+                              <input type="text" class="form-control" placeholder="New Trip Name" />
+                              <button type="button" class="form-control btn btn-primary">Add Trip</button>
+                            </div>
+                        </div>`;
+    return wrapper.childNodes[0];
+  })();
+  this.leftNavControl = (() => {
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = `<i class="trip-left-btn fas fa-angle-double-left" style="font-size: 16px; background: #FFFFFF; padding: 10px; margin-left: 20px;"></i>`;
+    return wrapper.childNodes[0];
+  })();
+  this.rightNavControl = (() => {
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = `<i class="trip-right-btn fas fa-angle-double-right" style="font-size: 16px; background: #FFFFFF; padding: 10px; margin-right: 20px;"></i>`;
+    return wrapper.childNodes[0];
+  })();
+
+  this.tripNameControl.querySelector('button').addEventListener('click', async(evt) => {
+    const formNode = this.tripNameControl.querySelector('.form-group');
+    const name = formNode.querySelector('input[type="text"]').value;
+    // Add trip
+    const { newTrip } = await postObj(`/trips`, {name});
+    this.trips.push(newTrip);
+    this.setTrip(newTrip.id);
+    formNode.style.setProperty('display', 'none');
+  });
+
+  this.tripNameControl.querySelector('.trip-add-btn').addEventListener('click', (evt) => {
+    const formNode = this.tripNameControl.querySelector('.form-group');
+    formNode.style.setProperty('display', 'block');
+  })
+
+  this.leftNavControl.addEventListener('click', (evt) => {
+    this.prev();
+  });
+
+  this.rightNavControl.addEventListener('click', (evt) => {
+    this.next();
+  });
+
+  map.controls[google.maps.ControlPosition.TOP_CENTER].push(this.tripNameControl);
+  map.controls[google.maps.ControlPosition.RIGHT_CENTER].push(this.rightNavControl);
+map.controls[google.maps.ControlPosition.LEFT_CENTER].push(this.leftNavControl);
 };
 
 TripController.prototype.confirmLink = async function(prevMarker, marker, description) {
@@ -32,15 +105,14 @@ TripController.prototype.confirmLink = async function(prevMarker, marker, descri
   const { newStop } = await postObj(`/trips/${trip.id}/stops`, { prevStopId, stop });
   trip.stops[newStop.id] = newStop;
   newStop.prev = trip.lastStop;
+  newStop.event = this.events.find(event => event.id === stop['event_id']);
   trip.lastStop = newStop;
-  console.log('Add', { prevStopId, stop }, newStop);
 };
 
 TripController.prototype.confirmRemove = async function(marker) {
   const trip = this.trips[this.cur];
   const stopId = Object.values(trip.stops).find(stop => stop['event_id'] === marker.data.id).id;
   const res = await postObj(`/trips/${trip.id}/stops/${stopId}/delete`, {});
-  console.log('Remove', {'trip_id': trip.id, 'stop_id': stopId}, res);
 };
 
 TripController.prototype.removeFromLink = function(marker) {
@@ -128,28 +200,33 @@ TripController.prototype.registerTripEditor = function() {
 TripController.prototype.update = async function() {
   const trip = this.trips[this.cur];
 
-  if (trip.stops) return;
+  if (!trip.stops) {
 
-  const stopsRes = await getTripInfo(trip.id);
+    const stopsRes = await getTripInfo(trip.id);
 
-  const stops = {};
-  for (let stop of stopsRes) {
-    stops[stop.id] = stop;
+    const stops = {};
+    for (let stop of stopsRes) {
+      stops[stop.id] = stop;
+    }
+    for (let stop of stopsRes) {
+      stop.event = this.events.find(event => event.id === stop['event_id']);
+
+      if (!stop['next_stop_id']) continue;
+      stop.next = stops[stop['next_stop_id']];
+      stop.next.prev = stop;
+    }
+
+    trip.stops = stops;
+    trip.lastStop = (trip['last_stop_id'] ? stops[trip['last_stop_id']] : null);
   }
-  for (let stop of stopsRes) {
-    stop.event = this.events.find(event => event.id === stop['event_id']);
 
-    if (!stop['next_stop_id']) continue;
-    stop.next = stops[stop['next_stop_id']];
-    stop.next.prev = stop;
-  }
-
-  trip.stops = stops;
-  trip.lastStop = (trip['last_stop_id'] ? stops[trip['last_stop_id']] : null);
+  this.tripNameControl.querySelector('.name').innerText = trip.name;
   this.render();
 };
 
 TripController.prototype.render = function() {
+  this.markerRoot = null;
+  this._map.selectMarker(null);
   this._map.clear();
   for (let event of this.events) {
     if (event.latlng) {
@@ -172,18 +249,6 @@ TripController.prototype.render = function() {
     this.markerRoot = trip.lastStop.event.marker;
     this._map.selectMarker(this.markerRoot);
   }
-};
-
-TripController.prototype.next = function() {
-  if (this.cur + 1 >= this.trips.length) return;
-  this.cur += 1;
-  this.update();
-};
-
-TripController.prototype.prev = function() {
-  if (this.cur - 1 <= 0) return;
-  this.cur -= 1;
-  this.update();
 };
 
 export { TripController };

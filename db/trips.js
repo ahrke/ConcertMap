@@ -5,16 +5,16 @@ const db = require('./con');
  */
 const getTrips = async (filter) => {
   filter = filter || {};
-  const queryText = 'SELECT trp.id, trp.name, trp.last_stop_id FROM trips trp WHERE coalesce(trp.user_id = $1, true)';
+  const queryText = 'SELECT trp.id, trp.name, trp.last_stop_id FROM trips trp WHERE coalesce(trp.user_id = $1, true) ORDER BY trp.id ASC';
   const res = await db.query(queryText, [filter['user_id']]);
   return res.rows;
 };
 
 const insertTrip = async (trip) => {
-  const queryText = `INSERT INTO trips (user_id, name, last_stop_id) VALUES ($1, $2, null) RETURNING id`;
+  const queryText = `INSERT INTO trips (user_id, name, last_stop_id) VALUES ($1, $2, null) RETURNING *`;
   const res = await db.query(queryText, [trip['user_id'], trip['name']]);
   if (res.rowCount !== 1) throw new Error('Insert new trip failed');
-  return res.rows[0].id;
+  return res.rows[0];
 };
 
 

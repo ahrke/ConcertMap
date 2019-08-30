@@ -133,6 +133,8 @@ LinkedMarkerMap.prototype.setCustomMarkers = function(isAllowed) {
 LinkedMarkerMap.prototype.clear = function() {
   for (let marker of this.markers) {
     if (marker.infoWindow) marker.infoWindow.close();
+    if (marker.nextLine) marker.nextLine.setMap(null);
+    if (marker.prevLine) marker.prevLine.setMap(null);
     marker.setMap(null);
   }
 }
