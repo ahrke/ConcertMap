@@ -32,6 +32,10 @@ body {
   padding: 0;
   margin: 0;
 
+  @media only screen and (max-width: 789px) {
+    order: 1;
+  }
+
   &::-webkit-scrollbar {
     width: 0;
   }
@@ -67,6 +71,9 @@ body {
 .main {
   flex: 4;
   height: 100%;
+  @media only screen and (max-width: 789px) {
+    order: 0;
+  }
 }
 
 .custom-marker-container {

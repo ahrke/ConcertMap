@@ -11,6 +11,8 @@ const onGMapLoad = async () => {
   map = new LinkedMarkerMap(document.querySelector('.gmap-container'), {
     // center: { lat: coords.latitude, lng: coords.longitude },
     center: { lat: 43.661539, lng: -79.411079 },
+    mapTypeControlOptions: { mapTypeIds: [] },
+    streetViewControl: false,
     zoom: 14
   });
 

@@ -169,6 +169,7 @@
     const onGMapLoad = () => {
       window.map = new LinkedMarkerMap(document.querySelector('.gmap-container'), {
         center: { lat: 43.661539, lng: -79.411079 },
+        mapTypeControlOptions: { mapTypeIds: [] },
         zoom: 14
       });
       window.map.setCustomMarkers(false);

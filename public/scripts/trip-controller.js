@@ -44,7 +44,7 @@ TripController.prototype.registerTripSwitcher = function() {
   const map = this._map;
   this.tripNameControl = (() => {
     const wrapper = document.createElement('div');
-    wrapper.innerHTML = `<div class="trip-name-container" style="font-size: 16px; background: #FFFFFF; padding: 10px;">
+    wrapper.innerHTML = `<div class="trip-name-container" style="text-align: center; font-size: 16px; background: #FFFFFF; padding: 10px; min-width: 250px;">
                             <p class="name"></p>
                             <i class="trip-add-btn fas fa-plus-circle" style="font-size: 16px; display: block; width: 16px; margin: 0 auto; padding: 4px;"></i>
                             <div class="form-group" style="display: none">
