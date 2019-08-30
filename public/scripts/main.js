@@ -1,4 +1,4 @@
-import { LinkedMarkerMap, MarkerInfoWindow } from './map.js';
+import { LinkedMarkerMap, redMarker, greenMarker } from './map.js';
 import { registerNewEventPopup } from './popup.js';
 
 let map;
@@ -69,7 +69,7 @@ const onGMapLoad = async () => {
 
   registerNewEventPopup(map);
 
-  events = window.embededData; // Replace with AJAX
+  events = window.embededData;
 
   document.querySelector('.popup .close-btn').addEventListener('click', function(evt) {
     this.closest('.popup').classList.remove('enabled');
@@ -134,14 +134,15 @@ const renderMarkers = (eventsRes) => {
   const listNodes = [];
   const containerNode = document.querySelector('.nav-list');
   containerNode.childNodes.forEach(n => containerNode.removeChild(n));
-  for (let eventRes of eventsRes) {
-    const listNode = getListNode(eventRes);
+  for (let event of eventsRes) {
+    const listNode = getListNode(event);
     listNodes.push(listNode);
-    if (eventRes.latlng) {
-      const marker = map.getNewMarker(eventRes.latlng[0], eventRes.latlng[1]);
+    if (event.latlng) {
+      const icon = event.id[0] === 'c' ? greenMarker : redMarker;
+      const marker = map.getNewMarker(event.latlng[0], event.latlng[1], icon);
       marker.listNode = listNode;
       listNode.marker = marker;
-      map.registerMarker(marker, eventRes);
+      map.registerMarker(marker, event);
     }
   }
   registerListNode(...listNodes);

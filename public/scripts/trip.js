@@ -1,4 +1,4 @@
-import { LinkedMarkerMap, MarkerInfoWindow } from './map.js';
+import { LinkedMarkerMap, MarkerInfoWindow, redMarker, greenMarker } from './map.js';
 import { registerNewEventPopup, isMobileDevice } from './popup.js';
 
 const markerHist = [];
@@ -22,42 +22,21 @@ const onGMapLoad = async () => {
     map.removeMarkerLink(marker);
   };
 
-
   map.addListener('markerregister', (marker, data) => {
-    marker.infoWindow.addListener('markerclick', (marker, containerNode, closeBtnNode) => {
-      closeBtnNode.addEventListener('click', (evt) => {
-        removeFromLink(marker);
-      });
-    });
+    marker.infoWindow.setClosable(false);
   });
 
-  map.addListener('markerclick', (marker, data) => {
+  map.addListener('markermouseover', (marker, data) => {
+    marker.infoWindow.open(`${data.name}`);
+  });
+
+  map.addListener('markermouseout', (marker, data) => {
+    marker.infoWindow.close();
+  });
+
+  map.addListener('markerclick', (marker, event) => {
+    if (marker.prompt) return;
     if (map.isMarkerLinked(marker)) return;
-    const onPopupLoad = (marker, containerNode, closeBtnNode) => {
-      const submitBtnNode = containerNode.querySelector('button');
-
-      // popup discard
-      closeBtnNode.addEventListener('click', (evt) => {
-        prompt.close();
-        removeFromLink(marker);
-      });
-
-      // popup save
-      submitBtnNode.addEventListener('click', (evt) => {
-        const data = containerNode.querySelector('textarea').value;
-        prompt.close();
-        marker.infoWindow.open(data);
-        if (isMobileDevice()) map.setCenter(marker.getPosition());
-      });
-    };
-
-    const addStopPopup = `<textarea class="stop-editor"></textarea><button type="button">Save</button>`;
-    const prompt = new MarkerInfoWindow(marker);
-    prompt.setClosable(true);
-    prompt.addListener('markerclick', onPopupLoad);
-    prompt.open(addStopPopup);
-    if (isMobileDevice()) map.setCenter(marker.getPosition());
-
     if (!markerRoot) markerRoot = marker;
 
     if (markerRoot !== marker) {
@@ -65,23 +44,62 @@ const onGMapLoad = async () => {
       markerRoot = marker;
     }
     map.selectMarker(markerRoot);
+
+    // Create a popup to get input
+    const onPopupLoad = (marker, containerNode, closeBtnNode) => {
+      const submitBtnNode = containerNode.querySelector('button');
+
+      // popup discard
+      closeBtnNode.addEventListener('click', (evt) => {
+        delete marker.prompt;
+        removeFromLink(marker);
+      });
+
+      // popup save
+      submitBtnNode.addEventListener('click', (evt) => {
+        const description = containerNode.querySelector('textarea').value;
+        prompt.close();
+        delete marker.prompt;
+        // Send data to server
+        const stop = {
+
+        };
+        // Create new floating stop description popup
+        marker.stopWindow = new MarkerInfoWindow(marker);
+        marker.stopWindow.addListener('markerclick', (marker, containerNode, closeBtnNode) => {
+          closeBtnNode.addEventListener('click', () => removeFromLink(marker));
+        });
+        marker.stopWindow.open(description);
+      });
+    };
+
+    const addStopPopup = `<div class="edit-stop-popup form-group">
+                            <textarea class="stop-editor form-control" placeholder="Description"></textarea>
+                            <button type="button" class="form-control btn btn-primary">Save</button>
+                          </div>`;
+    const prompt = new MarkerInfoWindow(marker);
+    prompt.setClosable(true);
+    prompt.addListener('markerclick', onPopupLoad);
+    marker.infoWindow.close();
+    prompt.open(addStopPopup);
+    marker.prompt = prompt;
+    if (isMobileDevice()) map.setCenter(marker.getPosition());
   });
 
   registerNewEventPopup(map);
 
   $(document).ready(() => {
-    renderMarkers(window.embededData);
+    renderMarkers(window.embededData.events);
+    console.log(window.embededData.trips);
   });
 };
 
-const renderMarkers = (eventsRes) => {
-  console.log("==> from renderMarkers, eventsRes:",eventsRes)
-  eventsRes.splice(50);
-  for (let eventRes of eventsRes) {
-    console.log("inside eventsRes, eventRes:",eventRes)
-    if (eventRes.latlng) {
-      const marker = map.getNewMarker(eventRes.latlng[0], eventRes.latlng[1]);
-      map.registerMarker(marker);
+const renderMarkers = (events) => {
+  for (let event of events) {
+    if (event.latlng) {
+      const icon = event.id[0] === 'c' ? greenMarker : redMarker;
+      const marker = map.getNewMarker(event.latlng[0], event.latlng[1], icon);
+      map.registerMarker(marker, event);
     }
   }
 };

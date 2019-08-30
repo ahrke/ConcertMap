@@ -194,6 +194,8 @@ LinkedMarkerMap.prototype.removeMarkerLink = function(marker) {
   if (marker.nextLine) marker.nextLine.setMap(null);
   if (marker.prevLine) marker.prevLine.setMap(null);
   if (marker.next && marker.prev) this.addLink(marker.prev, marker.next);
+  if (marker.next && !marker.prev) delete marker.next.prev;
+  if (!marker.next && marker.prev) delete marker.prev.next;
   delete marker.nextLine;
   delete marker.prevLine;
   delete marker.next;
@@ -214,4 +216,4 @@ LinkedMarkerMap.prototype.addLink = function(marker1, marker2) {
   marker2.prev = marker1;
 };
 
-export { LinkedMarkerMap, MarkerInfoWindow };
+export { LinkedMarkerMap, MarkerInfoWindow, redMarker, greenMarker, blueMarker };

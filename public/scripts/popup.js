@@ -30,8 +30,7 @@ const registerNewEventPopup = (map) => {
         map.registerMarker(marker, data);
         map.setCustomMarkers(true);
         prompt.close();
-        console.log(data);
-        await postObj('/users/customEvent', data);
+        await postObj('/events', data);
       });
 
       map.setCustomMarkers(false);
