@@ -19,7 +19,7 @@ module.exports = (db) => {
   });
 
   router.get("/", (req, res) => {
-    res.render("lander", { baseURI: process.env.BASE_URI, spotifyApiID: process.env.SPOTIFY_API_ID, googleApiKey: process.env.GOOGLE_API_KEY });
+    res.render("lander", { redirectURI: '/spotify/redirect', baseURI: process.env.BASE_URI, spotifyApiID: process.env.SPOTIFY_API_ID, googleApiKey: process.env.GOOGLE_API_KEY });
   });
 
   router.get('/map', async (req, res) => {
@@ -53,11 +53,11 @@ module.exports = (db) => {
     }
   });
 
-  router.get("/settings", async (req, res) => {
+  router.get("/profile/settings", async (req, res) => {
     try {
       if (req.session['user_id']) {
-        const profile = await db.getProfile(req.session['user_id']);
-        res.render('user_settings', profile);
+        const profile = await db.getUserProfile(req.session['user_id']);
+        res.render('user_settings', {user: profile});
       } else {
         res.redirect("/login");
       }
@@ -98,10 +98,10 @@ module.exports = (db) => {
     }
   });
 
-  router.get('/login', (req, res) => {
-    req.session['user_id'] = 1;
-    res.redirect('/');
-  });
+  // router.get('/login', (req, res) => {
+  //   req.session['user_id'] = 1;
+  //   res.redirect('/');
+  // });
 
   router.post("/login", async (req, res) => {
     try {

@@ -203,7 +203,7 @@ const getArtistInfo = async (name) => {
   return artistRes;
 };
 
-const tagTrip = window (trip_id, label) => {
+const tagTrip = (trip_id, label) => {
   console.log("==> favourite trip called")
   $.ajax({
     url: '/users/tag',

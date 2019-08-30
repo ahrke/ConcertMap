@@ -133,7 +133,7 @@
 
     const populateTrip = window.populateTrip = (trip_id) => {
       $.ajax({
-        url: '/trips/' + trip_id
+        url: '/trips/' + trip_id + '/stops'
       })
       .done(res => {
         console.log("response from populateTrip with trip_id ",trip_id,"returned with: ", res);

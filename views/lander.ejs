@@ -16,7 +16,7 @@
 
   <body>
     <div class="container">
-      <a href="https://accounts.spotify.com/authorize?client_id=<%= spotifyApiID %>&redirect_uri=<%=encodeURI(baseURI + '/api/spotify')%>&scope=user-read-private%20user-read-email&response_type=token&state=123"><h1 id="loginBtn">dance me in</h1></a>
+      <a href="https://accounts.spotify.com/authorize?client_id=<%= spotifyApiID %>&redirect_uri=<%=encodeURI(baseURI + redirectURI)%>&scope=user-read-private%20user-read-email&response_type=token&state=123"><h1 id="loginBtn">dance me in</h1></a>
 
     </div>
   </body>
