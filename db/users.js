@@ -15,6 +15,7 @@ const getUserByEmail = async(email) => {
  * Get a user's info from the database given their user_id.
  */
 const getUserProfile = async(userId) => {
+  console.log("==|==|> retreiving userId with:",userId);
   const queryText = `
       SELECT usr.email, pf.name, pf.bio, pf.avatar_uri
       FROM users usr

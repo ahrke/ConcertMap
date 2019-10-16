@@ -2,6 +2,6 @@ DROP TABLE IF EXISTS trips CASCADE;
 CREATE TABLE trips (
   id SERIAL PRIMARY KEY NOT NULL,
   user_id INTEGER REFERENCES users(id) NOT NULL,
-  last_stop_id INTEGER REFERENCES stops(id),
+  -- last_stop_id INTEGER REFERENCES stops(id),
   name VARCHAR(255)
 );

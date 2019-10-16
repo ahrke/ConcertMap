@@ -13,8 +13,20 @@ Finally, a user is able to create a 'trip', which is a collection of concert's t
 All of this is done through the combination of Songkick, Spotify, and Google Maps APIs.
 
 ## App Views
-// To come later
+<h3 align='center'>Map View of all Concerts in City</h3>
+<img src='./assets/map.png' style='width: 70%;'>
+<hr>
 
+<h3 align='center'>Spotify Popup with Artist Playlist</h3>
+<img src='./assets/spotify.png' style='width: 70%;'>
+<hr>
+
+<h3 align='center'>Account View</h3>
+<img src='./assets/account.png' style='width: 70%;'>
+<hr>
+
+<h3 align='center'>Sign In Page</h3>
+<img src='./assets/signin.png' style='width: 70%;'>
 
 ## Setup
 

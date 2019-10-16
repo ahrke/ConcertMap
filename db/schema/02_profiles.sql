@@ -3,5 +3,5 @@ CREATE TABLE profiles (
   user_id INTEGER PRIMARY KEY REFERENCES users(id) NOT NULL,
   name VARCHAR(255) NOT NULL DEFAULT '',
   avatar_uri VARCHAR(1024),
-  bio TEXT NOT NULL DEFAULT '',
+  bio TEXT NOT NULL DEFAULT ''
 );

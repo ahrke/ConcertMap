@@ -2,7 +2,7 @@
 require('dotenv').config();
 
 // Web server config
-const BIND_HOST  = process.env.BIND_HOST || '0.0.0.0';
+const BIND_HOST  = '127.0.0.1';
 const express    = require("express");
 const bodyParser = require("body-parser");
 const sass = require("node-sass-middleware");
@@ -61,19 +61,19 @@ app.use("/", apiRoutes(database));
 
   const httpServer = http.createServer(app);
   try {
-    await getListenPromise(httpServer, 80, BIND_HOST);
-    console.log("App listening on port 80");
+    await getListenPromise(httpServer, 3000, BIND_HOST);
+    console.log("App listening on port 3000");
   } catch (err) {
     await getListenPromise(httpServer, process.env.ALT_PORT, BIND_HOST);
     console.log(`App listening on port ${process.env.ALT_PORT}`);
   }
 
-  if (process.env.SSL_CERT && process.env.SSL_CERT_KEY && process.env.SSL_CA) {
-    const privateKey = fs.readFileSync(process.env.SSL_CERT_KEY, 'utf8');
-    const certificate = fs.readFileSync(process.env.SSL_CERT, 'utf8');
-    const ca = fs.readFileSync(process.env.SSL_CA, 'utf8');
-    const httpsServer = https.createServer({ key: privateKey, cert: certificate, ca}, app);
-    await getListenPromise(httpsServer, 443, BIND_HOST);
-    console.log("App listening on SSL port 443");
-  }
+  // if (process.env.SSL_CERT && process.env.SSL_CERT_KEY && process.env.SSL_CA) {
+  //   const privateKey = fs.readFileSync(process.env.SSL_CERT_KEY, 'utf8');
+  //   const certificate = fs.readFileSync(process.env.SSL_CERT, 'utf8');
+  //   const ca = fs.readFileSync(process.env.SSL_CA, 'utf8');
+  //   const httpsServer = https.createServer({ key: privateKey, cert: certificate, ca}, app);
+  //   await getListenPromise(httpsServer, 443, BIND_HOST);
+  //   console.log("App listening on SSL port 443");
+  // }
 })();

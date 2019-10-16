@@ -45,15 +45,16 @@ module.exports = (db) => {
   router.get("/profile", async (req, res) => {
     try {
       if (req.session['user_id']) {
+        console.log("==|==|> inside getProfile")
         const userIdFilter = { 'user_id': req.session['user_id'] };
         const eventsReq = songkick.getVerifiedEvents(43.645144, -79.503008, '2019-08-30');
         const cusEventsReq = db.getCustomEvents(userIdFilter);
         const profileReq = db.getUserProfile(req.session['user_id']);
-        const tripsReq = await db.getTrips(userIdFilter);
-        const [profile, events, cusEvents, trips] = await Promise.all([profileReq, eventsReq, cusEventsReq, tripsReq]);
-        renameSongkickId(events);
-        events.splice(20);
-        res.render('account', { events: [...cusEvents, ...events], trips, user: profile, googleApiKey: process.env.GOOGLE_API_KEY });
+        // const tripsReq = await db.getTrips(userIdFilter);
+        const [profile, events, cusEvents, trips] = await Promise.all([profileReq]);
+        // renameSongkickId(events);
+        // events.splice(20);
+        res.render('account', { events: [], trips: [], user: profile, googleApiKey: process.env.GOOGLE_API_KEY });
       } else {
         res.redirect("/login");
       }
@@ -79,12 +80,10 @@ module.exports = (db) => {
     try {
       const userIdFilter = { 'user_id': req.session['user_id'] };
       const eventsReq = songkick.getVerifiedEvents(43.645144, -79.503008, '2019-08-30');
-      const cusEventsReq = db.getCustomEvents(userIdFilter);
-      const tripsReq = await db.getTrips();
-      const [events, cusEvents, trips] = await Promise.all([eventsReq, cusEventsReq, tripsReq]);
+      const [events] = await Promise.all([eventsReq]);
       renameSongkickId(events);
       events.splice(20);
-      res.render('all_trips', { user: userIdFilter, events: [...cusEvents, ...events], trips, googleApiKey: process.env.GOOGLE_API_KEY });
+      res.render('all_trips', { user: userIdFilter, events, trips: [], googleApiKey: process.env.GOOGLE_API_KEY });
     } catch (err) {
       handleAppError(req, res, err);
     }
@@ -95,12 +94,10 @@ module.exports = (db) => {
       if (req.session['user_id']) {
         const userIdFilter = { 'user_id': req.session['user_id'] };
         const eventsReq = songkick.getVerifiedEvents(43.645144, -79.503008, '2019-08-30');
-        const cusEventsReq = db.getCustomEvents(userIdFilter);
-        const tripsReq = await db.getTrips(userIdFilter);
-        const [events, cusEvents, trips] = await Promise.all([eventsReq, cusEventsReq, tripsReq]);
+        const [events] = await Promise.all([eventsReq]);
         renameSongkickId(events);
         events.splice(20);
-        res.render('all_trips', { user: userIdFilter, events: [...cusEvents, ...events], trips, googleApiKey: process.env.GOOGLE_API_KEY });
+        res.render('all_trips', { user: userIdFilter, events, trips: [], googleApiKey: process.env.GOOGLE_API_KEY });
       } else {
         res.redirect('/login');
       }
